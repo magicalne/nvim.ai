@@ -54,7 +54,7 @@ function ChatDialog.open()
 
   -- Set window options
   api.nvim_win_set_option(state.win, 'wrap', true)
-  api.nvim_win_set_option(state.win, 'linebreak', true)   -- Wrap at word boundaries
+  api.nvim_win_set_option(state.win, 'linebreak', true) -- Wrap at word boundaries
   api.nvim_win_set_option(state.win, 'cursorline', true)
 end
 
@@ -119,7 +119,7 @@ function ChatDialog.send()
   local prompt = ChatDialog.last_user_request()
 
   ChatDialog.append_text("\n\n/assistant:\n")
-  Assistant.llm(system, prompt, ChatDialog.append_text, ChatDialog.on_complete)
+  Assistant.ask(system, prompt, ChatDialog.append_text, ChatDialog.on_complete)
 end
 
 function ChatDialog.get_system_prompt()

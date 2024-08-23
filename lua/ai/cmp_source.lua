@@ -31,10 +31,15 @@ source.complete = function(self, request, callback)
       if vim.api.nvim_buf_is_loaded(bufnr) then
         local name = vim.api.nvim_buf_get_name(bufnr)
         if name ~= '' then
+          local short_name = vim.fn.fnamemodify(name, ':t') -- Get the tail (filename) of the path
           table.insert(items, {
-            label = '/buf ' .. name,
+            label = string.format('/buf %d: %s', bufnr, short_name),
             kind = cmp.lsp.CompletionItemKind.File,
-            data = { bufnr = bufnr }
+            data = { bufnr = bufnr },
+            documentation = {
+              kind = cmp.lsp.MarkupKind.Markdown,
+              value = string.format("Buffer: %d\nFull path: %s", bufnr, name)
+            }
           })
         end
       end

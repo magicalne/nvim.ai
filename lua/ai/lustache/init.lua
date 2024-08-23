@@ -1,3 +1,5 @@
+-- COPY from https://github.com/Olivine-Labs/lustache
+
 -- lustache: Lua mustache template parsing.
 -- Copyright 2013 Olivine Labs, LLC <projects@olivinelabs.com>
 -- MIT Licensed.
@@ -6,14 +8,14 @@ local string_gmatch = string.gmatch
 
 function string.split(str, sep)
   local out = {}
-  for m in string_gmatch(str, "[^"..sep.."]+") do out[#out+1] = m end
+  for m in string_gmatch(str, "[^" .. sep .. "]+") do out[#out + 1] = m end
   return out
 end
 
 local lustache = {
   name     = "lustache",
   version  = "1.3.1-0",
-  renderer = require("lustache.renderer"):new(),
+  renderer = require("ai.lustache.renderer"):new(),
 }
 
 return setmetatable(lustache, {
