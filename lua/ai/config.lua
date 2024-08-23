@@ -1,14 +1,24 @@
 local M = {}
 
 M.BASE_PROVIDER_KEYS = { "endpoint", "model", "local", "deployment", "api_version", "proxy", "allow_insecure" }
+M.FLIE_TYPE = "chat-dialog"
+
+-- Add this near the top of the file, after the local M = {} line
+local function read_file(path)
+  local file = io.open(path, "r")
+  if not file then return nil end
+  local content = file:read("*all")
+  file:close()
+  return content
+end
 
 -- Default configuration
 M.defaults = {
   debug = true,
   -- Chat Dialog UI configuration
   ui = {
-    width = 80,         -- Width of the chat dialog window
-    side = 'right',     -- Side of the editor to open the dialog ('left' or 'right')
+    width = 80,     -- Width of the chat dialog window
+    side = 'right', -- Side of the editor to open the dialog ('left' or 'right')
     borderchars = { '╭', '─', '╮', '│', '╯', '─', '╰', '│', },
     highlight = {
       border = "FloatBorder", -- Highlight group for the border
@@ -38,19 +48,19 @@ M.defaults = {
 
   -- Keymaps
   keymaps = {
-    toggle = "<leader>ct",     -- Toggle chat dialog
-    send = "<CR>",             -- Send message in normal mode
-    newline = "<C-j>",         -- Insert newline in insert mode
-    close = "q",               -- Close chat dialog
-    clear = "<C-l>",           -- Clear chat history
+    toggle = "<leader>ct", -- Toggle chat dialog
+    send = "<CR>",         -- Send message in normal mode
+    newline = "<C-j>",     -- Insert newline in insert mode
+    close = "q",           -- Close chat dialog
+    clear = "<C-l>",       -- Clear chat history
   },
 
   -- Behavior
   behavior = {
-    auto_open = true,                                                  -- Automatically open dialog when sending a message
-    save_history = true,                                               -- Save chat history between sessions
-    history_file = vim.fn.stdpath("data") .. "/chat_history.json",     -- Path to save chat history
-    context_lines = 10,                                                -- Number of lines of code context to include in prompts
+    auto_open = true,                                              -- Automatically open dialog when sending a message
+    save_history = true,                                           -- Save chat history between sessions
+    history_file = vim.fn.stdpath("data") .. "/chat_history.json", -- Path to save chat history
+    context_lines = 10,                                            -- Number of lines of code context to include in prompts
   },
 
   -- Appearance
