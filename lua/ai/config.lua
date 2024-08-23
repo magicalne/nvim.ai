@@ -4,16 +4,17 @@ M.BASE_PROVIDER_KEYS = { "endpoint", "model", "local", "deployment", "api_versio
 
 -- Default configuration
 M.defaults = {
+  debug = true,
   -- Chat Dialog UI configuration
   ui = {
-    width = 40,                -- Width of the chat dialog window
-    side = 'right',            -- Side of the editor to open the dialog ('left' or 'right')
+    width = 80,         -- Width of the chat dialog window
+    side = 'right',     -- Side of the editor to open the dialog ('left' or 'right')
     borderchars = { '╭', '─', '╮', '│', '╯', '─', '╰', '│', },
     highlight = {
-      border = "FloatBorder",  -- Highlight group for the border
+      border = "FloatBorder", -- Highlight group for the border
       background = "NormalFloat", -- Highlight group for the background
     },
-    prompt_prefix = "❯ ",      -- Prefix for the input prompt
+    prompt_prefix = "❯ ", -- Prefix for the input prompt
   },
 
   -- LLM configuration
@@ -46,21 +47,21 @@ M.defaults = {
 
   -- Behavior
   behavior = {
-    auto_open = true,          -- Automatically open dialog when sending a message
-    save_history = true,       -- Save chat history between sessions
-    history_file = vim.fn.stdpath("data") .. "/chat_history.json", -- Path to save chat history
-    context_lines = 10,        -- Number of lines of code context to include in prompts
+    auto_open = true,                                                  -- Automatically open dialog when sending a message
+    save_history = true,                                               -- Save chat history between sessions
+    history_file = vim.fn.stdpath("data") .. "/chat_history.json",     -- Path to save chat history
+    context_lines = 10,                                                -- Number of lines of code context to include in prompts
   },
 
   -- Appearance
   appearance = {
     icons = {
-      user = "🧑",              -- Icon for user messages
-      assistant = "🤖",         -- Icon for assistant messages
-      system = "🖥️",           -- Icon for system messages
-      error = "❌",             -- Icon for error messages
+      user = "🧑", -- Icon for user messages
+      assistant = "🤖", -- Icon for assistant messages
+      system = "🖥️", -- Icon for system messages
+      error = "❌", -- Icon for error messages
     },
-    syntax_highlight = true,   -- Syntax highlight code in responses
+    syntax_highlight = true, -- Syntax highlight code in responses
   },
 }
 
@@ -95,7 +96,7 @@ function M.setup(user_config)
 end
 
 function M:get(what)
-  print('what', what)
   return M.config[what]
 end
+
 return M

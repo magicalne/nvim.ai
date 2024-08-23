@@ -6,15 +6,13 @@ local P = require("ai.providers")
 
 local curl = require("plenary.curl")
 
----@class avante.LLM
 local M = {}
 
 M.CANCEL_PATTERN = "NVIMAIHTTPEscape"
 
 ------------------------------Prompt and type------------------------------
 
----@alias AvanteSystemPrompt string
-local system_prompt = [[
+local global_system_prompt = [[
 You are an excellent programming expert.
 ]]
 
@@ -22,16 +20,11 @@ You are an excellent programming expert.
 local group = api.nvim_create_augroup("NVIMAIHTTP", { clear = true })
 local active_job = nil
 
----@param question string
----@param code_lang string
----@param code_content string
----@param selected_content_content string | nil
----@param on_chunk AvanteChunkParser
----@param on_complete AvanteCompleteParser
-M.stream = function(prompt, on_chunk, on_complete)
+M.stream = function(system_prompt, prompt, on_chunk, on_complete)
   local provider = Config.config.provider
-
-  ---@type AvantePromptOptions
+  if system_prompt == nil then
+    system_prompt = global_system_prompt
+  end
   local code_opts = {
     base_prompt = prompt,
     system_prompt = system_prompt,
@@ -40,17 +33,13 @@ M.stream = function(prompt, on_chunk, on_complete)
   ---@type string
   local current_event_state = nil
 
-  ---@type AvanteProviderFunctor
   local Provider = P[provider]
 
-  ---@type AvanteHandlerOptions
   local handler_opts = { on_chunk = on_chunk, on_complete = on_complete }
-  ---@type AvanteCurlOutput
   local spec = Provider.parse_curl_args(Config.get_provider(provider), code_opts)
 
   ---@param line string
   local function parse_stream_data(line)
-    print('line', line)
     local event = line:match("^event: (.+)$")
     if event then
       current_event_state = event
@@ -80,7 +69,6 @@ M.stream = function(prompt, on_chunk, on_complete)
       end
       vim.schedule(function()
         if Config.config[provider] == nil and Provider.parse_stream_data ~= nil then
-          print('data', data)
           if Provider.parse_response ~= nil then
             Utils.warn(
               "parse_stream_data and parse_response_data are mutually exclusive, and thus parse_response_data will be ignored. Make sure that you handle the incoming data correctly.",
@@ -107,7 +95,7 @@ M.stream = function(prompt, on_chunk, on_complete)
     callback = function()
       if active_job then
         active_job:shutdown()
-        Utils.debug("LLM request cancelled", { title = "Avante" })
+        Utils.debug("LLM request cancelled", { title = "NVIM.AI" })
         active_job = nil
       end
     end,
@@ -117,4 +105,3 @@ M.stream = function(prompt, on_chunk, on_complete)
 end
 
 return M
-

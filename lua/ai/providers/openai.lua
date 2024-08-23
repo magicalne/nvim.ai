@@ -1,27 +1,6 @@
 local Utils = require("ai.utils")
 local Config = require("ai.config")
 local P = require("ai.providers")
-
----@class OpenAIChatResponse
----@field id string
----@field object "chat.completion" | "chat.completion.chunk"
----@field created integer
----@field model string
----@field system_fingerprint string
----@field choices? OpenAIResponseChoice[]
----@field usage {prompt_tokens: integer, completion_tokens: integer, total_tokens: integer}
----
----@class OpenAIResponseChoice
----@field index integer
----@field delta OpenAIMessage
----@field logprobs? integer
----@field finish_reason? "stop" | "length"
----
----@class OpenAIMessage
----@field role? "user" | "system" | "assistant"
----@field content string
----
----@class AvanteProviderFunctor
 local M = {}
 
 M.API_KEY = "OPENAI_API_KEY"
@@ -32,36 +11,10 @@ end
 
 M.parse_message = function(opts)
   local user_prompt = opts.base_prompt
-    .. "\n\nCODE:\n"
-    .. "```"
-    .. opts.code_lang
-    .. "\n"
-    .. opts.code_content
-    .. "\n```"
-    .. "\n\nQUESTION:\n"
-    .. opts.question
-
-  if opts.selected_code_content ~= nil then
-    user_prompt = opts.base_prompt
-      .. "\n\nCODE CONTEXT:\n"
-      .. "```"
-      .. opts.code_lang
-      .. "\n"
-      .. opts.code_content
-      .. "\n```"
-      .. "\n\nCODE:\n"
-      .. "```"
-      .. opts.code_lang
-      .. "\n"
-      .. opts.selected_code_content
-      .. "\n```"
-      .. "\n\nQUESTION:\n"
-      .. opts.question
-  end
 
   return {
     { role = "system", content = opts.system_prompt },
-    { role = "user", content = user_prompt },
+    { role = "user",   content = opts.base_prompt },
   }
 end
 
@@ -108,4 +61,3 @@ M.parse_curl_args = function(provider, code_opts)
 end
 
 return M
-

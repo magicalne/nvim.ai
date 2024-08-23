@@ -6,11 +6,8 @@ local Utils = require("ai.utils")
 local M = {}
 
 setmetatable(M, {
-  ---@param t avante.Providers
-  ---@param k Provider
   __index = function(t, k)
     if Config.config.vendors[k] ~= nil then
-      ---@type AvanteProvider
       local v = Config.config.vendors[k]
 
       -- Patch from vendors similar to supported providers.
@@ -25,7 +22,6 @@ setmetatable(M, {
       return t[k]
     end
 
-    ---@type AvanteProviderFunctor
     t[k] = require("ai.providers." .. k)
     return t[k]
   end,
@@ -39,7 +35,6 @@ E._once = false
 
 --- intialize the environment variable for current neovim session.
 --- This will only run once and spawn a UI for users to input the envvar.
----@param opts {refresh: boolean, provider: AvanteProviderFunctor}
 ---@private
 E.setup = function(opts)
 end
@@ -52,17 +47,7 @@ end
 
 M.env = E
 
-M.AVANTE_INTERNAL_KEY = "__avante_env_internal"
-
 M.setup = function()
-  ---@type AvanteProviderFunctor
-  -- local provider = M[Config.config.provider]
-  -- E.setup({ provider = provider })
-
-  -- if provider.setup ~= nil then
-  --   provider.setup()
-  -- end
-
   M.commands()
 end
 
@@ -83,17 +68,17 @@ local default_providers = { "openai", "claude", "azure", "deepseek", "groq", "ge
 
 ---@private
 M.commands = function()
-  api.nvim_create_user_command("AvanteSwitchProvider", function(args)
+  api.nvim_create_user_command("NvimAISwitchProvider", function(args)
     local cmd = vim.trim(args.args or "")
     M.refresh(cmd)
   end, {
     nargs = 1,
     desc = "avante: switch provider",
     complete = function(_, line)
-      if line:match("^%s*AvanteSwitchProvider %w") then
+      if line:match("^%s*NvimAISwitchProvider %w") then
         return {}
       end
-      local prefix = line:match("^%s*AvanteSwitchProvider (%w*)") or ""
+      local prefix = line:match("^%s*NvimAISwitchProvider (%w*)") or ""
       -- join two tables
       local Keys = vim.list_extend(default_providers, vim.tbl_keys(Config.config.vendors or {}))
       return vim.tbl_filter(function(key)
@@ -104,7 +89,7 @@ M.commands = function()
 end
 
 M.parse_config = function(opts)
-  ---@type AvanteDefaultBaseProvider
+  ---@type BaseProvider
   local s1 = {}
   ---@type table<string, any>
   local s2 = {}
@@ -118,7 +103,7 @@ M.parse_config = function(opts)
   end
 
   return s1,
-    vim
+      vim
       .iter(s2)
       :filter(function(k, v)
         return type(v) ~= "function"
@@ -137,4 +122,3 @@ M.get = function(provider)
 end
 
 return M
-
