@@ -35,7 +35,9 @@ Match the indentation in the original file in the inserted {{content_type}}, don
 Immediately start with the following format with no remarks:
 
 ```
-\{{INSERTED_CODE}}
+{{=<% %>=}}
+{{INSERTED_CODE}}
+<%={{ }}=%>
 ```
 {{/is_insert}}
 {{^is_insert}}
@@ -60,7 +62,9 @@ Start at the indentation level in the original file in the rewritten {{content_t
 Immediately start with the following format with no remarks:
 
 ```
-\{{REWRITTEN_CODE}}
+{{=<% %>=}}
+{{REWRITTEN_CODE}}
+<%={{ }}=%>
 ```
 {{/is_insert}}
 

@@ -154,7 +154,9 @@ function ChatDialog.on_complete(t)
 end
 
 function ChatDialog.append_text(text)
-  if not (state.buf and api.nvim_buf_is_valid(state.buf)) then return end
+  if not state.buf or not pcall(vim.api.nvim_buf_is_loaded, state.buf) or not pcall(vim.api.nvim_buf_get_option, state.buf, 'buflisted') then
+    return
+  end
 
   vim.schedule(function()
     -- Get the last line and its content
@@ -187,7 +189,7 @@ function ChatDialog.clear()
 
   api.nvim_buf_set_option(state.buf, "modifiable", true)
   api.nvim_buf_set_lines(state.buf, 0, -1, false, {})
-  api.nvim_buf_set_option(state.buf, "modifiable", false)
+  state.last_saved_file = nil
 end
 
 function ChatDialog.send()
@@ -238,6 +240,7 @@ function ChatDialog.setup()
   ChatDialog.config = vim.tbl_deep_extend("force", ChatDialog.config, config.config.ui or {})
   -- Create user commands
   api.nvim_create_user_command("ChatDialogToggle", ChatDialog.toggle, {})
+  api.nvim_create_user_command("ChatDialogClear", ChatDialog.clear, {})
 end
 
 return ChatDialog
