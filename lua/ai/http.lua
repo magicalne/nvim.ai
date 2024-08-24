@@ -12,19 +12,11 @@ M.CANCEL_PATTERN = "NVIMAIHTTPEscape"
 
 ------------------------------Prompt and type------------------------------
 
-local global_system_prompt = [[
-You are an excellent programming expert.
-]]
-
-
 local group = api.nvim_create_augroup("NVIMAIHTTP", { clear = true })
 local active_job = nil
 
 M.stream = function(system_prompt, prompt, on_chunk, on_complete)
   local provider = Config.config.provider
-  if system_prompt == nil then
-    system_prompt = global_system_prompt
-  end
   local code_opts = {
     base_prompt = prompt,
     system_prompt = system_prompt,

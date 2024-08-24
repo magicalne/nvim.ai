@@ -46,6 +46,8 @@ M.defaults = {
 
   vendors = {},
 
+  saved_chats_dir = vim.fn.stdpath("data") .. "/nvim.ai/saved_chats",
+
   -- Keymaps
   keymaps = {
     toggle = "<leader>ct", -- Toggle chat dialog

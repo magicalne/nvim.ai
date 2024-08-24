@@ -30,7 +30,6 @@ end
 -- Setup function to initialize the plugin
 M.setup = function(opts)
   Config.setup(opts)
-  print('prompt', Config.CONTENT_PROMPT)
   -- Load the plugin's configuration
   -- init chat dialog
   ChatDialog:setup()

@@ -59,7 +59,7 @@ end
 --   - is_insert: boolean indicating if it's an insert operation
 --   - rewrite_section: nil (TODO)
 --   - is_truncated: nil (TODO)
-local function build_context(input_string, language_name, is_insert)
+local function build_inline_context(input_string, language_name, is_insert)
   local buffers = {}
   local user_prompt_lines = {}
   -- parse slash commands
@@ -73,7 +73,6 @@ local function build_context(input_string, language_name, is_insert)
   end
 
   local document = build_document(buffers)
-  print('doc', document)
   if is_insert then
     document = document .. "\n<insert_here></insert_here>"
   end
@@ -101,16 +100,31 @@ local function build_context(input_string, language_name, is_insert)
   return result
 end
 
-local function format_prompt(ctx)
+M.parse_inline_assist_prompt = function(raw_prompt, language_name, is_insert)
+  local context = build_inline_context(raw_prompt, language_name, is_insert)
   local prompt_template = Prompts.CONTENT_PROMPT
-  local prompt = lustache:render(prompt_template, ctx)
-  print('rendered', prompt)
+  local prompt = lustache:render(prompt_template, context)
   return prompt
 end
 
-M.parse_prompt = function(raw_prompt, language_name, is_insert)
-  local context = build_context(raw_prompt, language_name, is_insert)
-  return format_prompt(context)
+M.parse_chat_prompt = function(input_string)
+  local buffers = {}
+  local user_prompt_lines = {}
+  -- parse slash commands
+  for line in input_string:gmatch("[^\r\n]+") do
+    local buf_match = line:match("^/buf%s+(%d+)")
+    if buf_match then
+      table.insert(buffers, tonumber(buf_match))
+    else
+      table.insert(user_prompt_lines, line)
+    end
+  end
+
+  local document = build_document(buffers)
+  local user_prompt = table.concat(user_prompt_lines, "\n"):gsub("^%s*(.-)%s*$", "%1")
+
+  local prompt = user_prompt .. "\n\n<document>\n" .. document .. "\n</document>"
+  return prompt
 end
 
 return M
