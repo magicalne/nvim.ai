@@ -3,11 +3,12 @@ local Prompts = require("ai.assistant.prompts")
 
 M = {}
 
---- Get the filetype of a buffer
+--- Get the filetype of the current buffer
 -- @param bufnr number The buffer number
 -- @return string|nil The filetype of the buffer, or nil if not determined
 -- @return string|nil Error message if the buffer number is invalid
-local function get_buffer_filetype(bufnr)
+local function get_buffer_filetype()
+  local bufnr = vim.api.nvim_get_current_buf()
   -- Ensure the buffer number is valid
   if not vim.api.nvim_buf_is_valid(bufnr) then
     return nil, "Invalid buffer number"
@@ -48,6 +49,42 @@ local function build_document(buffer_numbers)
   return table.concat(contents, "\n\n")
 end
 
+local function get_prefix_suffix()
+  -- Get the current buffer number
+  local bufnr = vim.api.nvim_get_current_buf()
+
+  -- Get the current cursor line number
+  local cur_line = vim.fn.line(".")
+
+  -- Get the total number of lines in the buffer
+  local total_lines = vim.api.nvim_buf_line_count(bufnr)
+
+  -- Get the prefix (lines before the cursor)
+  local prefix = {}
+  for i = 1, cur_line - 1 do
+    table.insert(prefix, vim.api.nvim_buf_get_lines(bufnr, i - 1, i, true)[1])
+  end
+
+  -- Get the suffix (lines after the cursor)
+  local suffix = {}
+  for i = cur_line + 1, total_lines do
+    table.insert(suffix, vim.api.nvim_buf_get_lines(bufnr, i - 1, i, true)[1])
+  end
+
+  return table.concat(prefix, "\n"), table.concat(suffix, "\n")
+end
+
+local function build_inline_document()
+  local prefix, suffix = get_prefix_suffix()
+
+  -- Add '<insert_here>' in the middle
+  return table.concat({
+    prefix,
+    "<insert_here></insert_here>",
+    suffix
+  }, "\n\n")
+end
+
 -- @param input_string string The raw input string containing user prompt and slash commands
 -- @param language_name string|nil The name of the programming language (optional)
 -- @param is_insert boolean Whether the operation is an insert operation
@@ -59,30 +96,13 @@ end
 --   - is_insert: boolean indicating if it's an insert operation
 --   - rewrite_section: nil (TODO)
 --   - is_truncated: nil (TODO)
-local function build_context(input_string, language_name, is_insert)
-  local buffers = {}
-  local user_prompt_lines = {}
-  -- parse slash commands
-  for line in input_string:gmatch("[^\r\n]+") do
-    local buf_match = line:match("^/buf%s+(%d+)")
-    if buf_match then
-      table.insert(buffers, tonumber(buf_match))
-    else
-      table.insert(user_prompt_lines, line)
-    end
-  end
+local function build_inline_context(user_prompt, language_name, is_insert)
+  -- TODO: rewrite section
 
-  local document = build_document(buffers)
-  print('doc', document)
-  if is_insert then
-    document = document .. "\n<insert_here></insert_here>"
-  end
+  local document = build_inline_document()
 
-  local user_prompt = table.concat(user_prompt_lines, "\n"):gsub("^%s*(.-)%s*$", "%1")
-
-  local first_buffer = buffers[1] or nil
-  if language_name == nil and first_buffer then
-    language_name = get_buffer_filetype(first_buffer)
+  if language_name == nil then
+    language_name = get_buffer_filetype()
   end
 
   local content_type = language_name == nil or language_name == "text" or language_name == "markdown" and "text" or
@@ -101,16 +121,36 @@ local function build_context(input_string, language_name, is_insert)
   return result
 end
 
-local function format_prompt(ctx)
+M.parse_inline_assist_prompt = function(raw_prompt, language_name, is_insert)
+  local context = build_inline_context(raw_prompt, language_name, is_insert)
   local prompt_template = Prompts.CONTENT_PROMPT
-  local prompt = lustache:render(prompt_template, ctx)
-  print('rendered', prompt)
+  local prompt = lustache:render(prompt_template, context)
   return prompt
 end
 
-M.parse_prompt = function(raw_prompt, language_name, is_insert)
-  local context = build_context(raw_prompt, language_name, is_insert)
-  return format_prompt(context)
+M.parse_chat_prompt = function(input_string)
+  local buffers = {}
+  local user_prompt_lines = {}
+  -- parse slash commands
+  for line in input_string:gmatch("[^\r\n]+") do
+    local buf_match = line:match("^/buf%s+(%d+)")
+    if buf_match then
+      table.insert(buffers, tonumber(buf_match))
+    else
+      table.insert(user_prompt_lines, line)
+    end
+  end
+
+  local user_prompt = table.concat(user_prompt_lines, "\n"):gsub("^%s*(.-)%s*$", "%1")
+  print('buffers', vim.inspect(buffers))
+  local prompt
+  if #buffers > 0 then
+    local document = build_document(buffers)
+    prompt = "<document>\n" .. document .. "\n</document>\n\n" .. user_prompt
+  else
+    prompt = user_prompt
+  end
+  return prompt
 end
 
 return M

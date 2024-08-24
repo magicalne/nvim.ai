@@ -7,7 +7,7 @@ zed ai in neovim!
 - ✅ Local LLM integration with Ollama
 - ✅ Context-aware AI assistance
 - 🚧 Inline assistant (Work in Progress)
-  - [ ] Code insertion
+  - ✅Code insertion
   - [ ] Code rewriting
 - 🚧 AI-powered workflow enhancements (Planned)
 

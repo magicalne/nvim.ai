@@ -29,6 +29,13 @@ M.defaults = {
 
   -- LLM configuration
   provider = "ollama",
+  anthropic = {
+    endpoint = "https://api.anthropic.com",
+    model = "claude-3-5-sonnet-20240620",
+    temperature = 0,
+    max_tokens = 4096,
+    ["local"] = false,
+  },
   openai = {
     endpoint = "https://api.openai.com",
     model = "gpt-4o",
@@ -45,6 +52,8 @@ M.defaults = {
   },
 
   vendors = {},
+
+  saved_chats_dir = vim.fn.stdpath("data") .. "/nvim.ai/saved_chats",
 
   -- Keymaps
   keymaps = {
