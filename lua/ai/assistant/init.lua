@@ -13,7 +13,6 @@ M.ask = function(system_prompt, raw_prompt, on_chunk, on_complete)
   local provider = Config.config.provider
   local p = Providers.get(provider)
   local prompt = Assist.parse_chat_prompt(raw_prompt)
-  print("prompt", prompt)
   Http.stream(system_prompt, prompt, on_chunk, on_complete)
 end
 
