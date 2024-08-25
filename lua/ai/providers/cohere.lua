@@ -4,31 +4,21 @@ local P = require("ai.providers")
 
 local M = {}
 
-M.API_KEY = "ANTHROPIC_API_KEY"
+M.API_KEY = "CO_API_KEY"
 
 M.has = function()
   return vim.fn.executable("curl") == 1 and os.getenv(M.API_KEY) ~= nil
 end
 
-M.parse_message = function(opts)
-  local user_prompt = opts.base_prompt
-
-  return {
-    { role = "user", content = user_prompt },
-  }
-end
-
 M.parse_response = function(data_stream, _, opts)
-  if data_stream == nil or data_stream == "" then
+  local json = vim.json.decode(data_stream)
+  -- {"is_finished":false,"event_type":"text-generation","text":" person"}
+  if json.is_finished then
+    opts.on_complete(nil)
     return
-  end
-  local data_match = data_stream:match("^data: (.+)$")
-  if data_match ~= nil then
-    local json = vim.json.decode(data_match)
-    if json.type == 'content_block_delta' then
-      opts.on_chunk(json.delta.text)
-    elseif json.type == 'message_stop' then
-      opts.on_complete(nil)
+  else
+    if json.text ~= nil then
+      opts.on_chunk(json.text)
     end
   end
 end
@@ -38,19 +28,21 @@ M.parse_curl_args = function(provider, code_opts)
 
   local headers = {
     ["Content-Type"] = "application/json",
-    ["x-api-key"] = os.getenv(M.API_KEY),
-    ["anthropic-version"] = "2023-06-01",
+    ["Authorization"] = "bearer " .. os.getenv(M.API_KEY),
   }
 
   return {
-    url = Utils.trim(base.endpoint, { suffix = "/" }) .. "/v1/messages",
+    url = Utils.trim(base.endpoint, { suffix = "/" }) .. "/v1/chat",
     proxy = base.proxy,
     insecure = base.allow_insecure,
     headers = headers,
     body = vim.tbl_deep_extend("force", {
       model = base.model,
-      system = code_opts.system_prompt,
-      messages = M.parse_message(code_opts),
+      message = code_opts.base_prompt,
+      premble = {
+        role = "SYSTEM",
+        message = code_opts.system_prompt
+      },
       stream = true,
       max_tokens = base.max_tokens or 4096,
       temperature = base.temperature or 0.7,

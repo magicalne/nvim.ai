@@ -1,24 +1,16 @@
 local Utils = require("ai.utils")
 local Config = require("ai.config")
 local P = require("ai.providers")
+
 local M = {}
 
-M.API_KEY = "OPENAI_API_KEY"
+M.API_KEY = "DEEPSEEK_API_KEY"
 
-M.has = function()
-  return os.getenv(M.API_KEY) and true or false
+function M.has()
+  return vim.fn.executable("curl") == 1 and os.getenv(M.API_KEY) ~= nil
 end
 
-M.parse_message = function(opts)
-  local user_prompt = opts.base_prompt
-
-  return {
-    { role = "system", content = opts.system_prompt },
-    { role = "user",   content = opts.base_prompt },
-  }
-end
-
-M.parse_response = function (data_stream, _, opts)
+function M.parse_response(data_stream, _, opts)
   if data_stream == nil or data_stream == "" then
     return
   end
@@ -34,7 +26,7 @@ M.parse_response = function (data_stream, _, opts)
   end
 end
 
-M.parse_curl_args = function(provider, code_opts)
+function M.parse_curl_args(provider, code_opts)
   local base, body_opts = P.parse_config(provider)
 
   local headers = {
@@ -54,16 +46,21 @@ M.parse_curl_args = function(provider, code_opts)
   }
 
   return {
-    url = Utils.trim(base.endpoint, { suffix = "/" }) .. "/v1/chat/completions",
+    url = Utils.trim(base.endpoint, { suffix = "/" }) .. "/chat/completions",
     proxy = base.proxy,
     insecure = base.allow_insecure,
     headers = headers,
     body = vim.tbl_deep_extend("force", {
-      model = base.model,
       messages = messages,
+      model = base.model,
+      temperature = base.temperature or 1,
+      max_tokens = base.max_tokens or 1024,
+      top_p = 1,
       stream = true,
     }, body_opts),
   }
 end
 
 return M
+
+

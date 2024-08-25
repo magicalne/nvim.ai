@@ -1,11 +1,20 @@
+local ChatDialog = require("ai.chat_dialog")
 local Assistant = require('ai.assistant')
 return {
-  {
-    cmd = "InlineAssist",
-    callback = function(opts)
-      print('inline assist', opts.args)
-      Assistant.inline(opts.args)
 
+  {
+    cmd = "NvimAIToggleChatDialog",
+    callback = function()
+      ChatDialog.toggle()
+    end,
+    opts = {
+      desc = "Insert code or rewrite a section",
+    },
+  },
+  {
+    cmd = "NvimAIInlineAssist",
+    callback = function(opts)
+      Assistant.inline(opts.args)
     end,
     opts = {
       desc = "Insert code or rewrite a section",
@@ -14,7 +23,7 @@ return {
     },
   },
   {
-    cmd = "AcceptCode",
+    cmd = "NvimAIAcceptCode",
     callback = function(opts)
       Assistant.accept_code()
     end,
@@ -25,7 +34,7 @@ return {
     },
   },
   {
-    cmd = "RejectCode",
+    cmd = "NvimAIRejectCode",
     callback = function(opts)
       Assistant.reject_code()
     end,

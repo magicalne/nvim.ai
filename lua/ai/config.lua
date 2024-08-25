@@ -29,6 +29,27 @@ M.defaults = {
 
   -- LLM configuration
   provider = "ollama",
+  deepseek = {
+    endpoint = "https://api.deepseek.com",
+    model = "deepseek-chat", -- or command-r
+    temperature = 0,
+    max_tokens = 4096,
+    ["local"] = false,
+  },
+  cohere = {
+    endpoint = "https://api.cohere.com",
+    model = "command-r-plus", -- or command-r
+    temperature = 0,
+    max_tokens = 4096,
+    ["local"] = false,
+  },
+  groq = {
+    endpoint = "https://api.groq.com",
+    model = "llama-3.1-70b-versatile", -- or llama3.1-7b-instant, llama3.1:405b, gemma2-9b-it
+    temperature = 0,
+    max_tokens = 4096,
+    ["local"] = false,
+  },
   anthropic = {
     endpoint = "https://api.anthropic.com",
     model = "claude-3-5-sonnet-20240620",
@@ -57,22 +78,23 @@ M.defaults = {
 
   -- Keymaps
   keymaps = {
-    toggle = "<leader>ct", -- Toggle chat dialog
-    send = "<CR>",         -- Send message in normal mode
-    newline = "<C-j>",     -- Insert newline in insert mode
-    close = "q",           -- Close chat dialog
-    clear = "<C-l>",       -- Clear chat history
+    toggle = "<leader>c",       -- Toggle chat dialog
+    send = "<CR>",               -- Send message in normal mode
+    close = "q",                 -- Close chat dialog
+    clear = "<C-l>",             -- Clear chat history
+    inline_assist = "<leader>i", -- Run InlineAssist command with prompt
+    accept_code = "<leader>ia",
+    reject_code = "<leader>ij",
   },
 
   -- Behavior
   behavior = {
-    auto_open = true,                                              -- Automatically open dialog when sending a message
-    save_history = true,                                           -- Save chat history between sessions
-    history_file = vim.fn.stdpath("data") .. "/chat_history.json", -- Path to save chat history
-    context_lines = 10,                                            -- Number of lines of code context to include in prompts
+    auto_open = true,                     -- Automatically open dialog when sending a message
+    save_history = true,                  -- Save chat history between sessions
+    history_dir = vim.fn.stdpath("data"), -- Path to save chat history
   },
 
-  -- Appearance
+  -- TODO: Appearance
   appearance = {
     icons = {
       user = "🧑", -- Icon for user messages
@@ -114,7 +136,7 @@ function M.setup(user_config)
   -- end
 end
 
-function M:get(what)
+function M.get(what)
   return M.config[what]
 end
 

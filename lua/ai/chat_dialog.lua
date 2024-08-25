@@ -29,7 +29,7 @@ end
 
 local function get_win_config()
   local width = ChatDialog.config.width
-  local height = api.nvim_get_option('lines')
+  local height = api.nvim_get_option('lines') - 4
   local col = ChatDialog.config.side == 'left' and 0 or (api.nvim_get_option('columns') - width)
 
   return {
