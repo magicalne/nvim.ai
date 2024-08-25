@@ -36,7 +36,7 @@ You can find all the config from [here](https://github.com/magicalne/nvim.ai/blo
 
 ### Ollama
 
-```lua
+```Lua
 local ai = require('ai')
 ai.setup({
   provider = "ollama",
@@ -49,7 +49,7 @@ ai.setup({
 
 ### Others
 
-```
+```Lua
 local ai = require('ai')
 ai.setup({
   provider = "deepseek", --  "anthropic", "groq", "cohere"
@@ -60,7 +60,7 @@ ai.setup({
 
 If may want to autocomplete commands with `cmp`:
 
-```lua
+```Lua
 sources = cmp.config.sources({
   { name = 'nvimai_cmp_source' },
   --...
@@ -70,10 +70,10 @@ sources = cmp.config.sources({
 ### Default Keymaps
 
 #### Chat
-- <kbd>Leader</kbd><kbd>c</kbd — Toggle chat
+- <kbd>Leader</kbd><kbd>c</kbd> -- Toggle chat
 - <kbd>q</kbd> -- Close chat
-- <kbd><CR></kbd> -- Send message in normal mode
-- <kbd>Contrl</kbd><kbd>l</kbd — Clear chat history
+- <kbd><Enter></kbd> -- Send message in normal mode
+- <kbd>Contrl</kbd><kbd>l</kbd -- Clear chat history
 
 #### Inline Assist
 
@@ -93,6 +93,21 @@ The chat dialog is a special buffer. `nvim.ai` will parse the content with keywo
 - **/assistant**: The streaming content from LLM will appear below this line.
 Since the chat dialog is just a buffer, you can edit anything in it. Be aware that only the last block of `/you` will be treated as the prompt.
 Just like Zed AI, this feature is called "chat with context." You can edit the last prompt if you don't like the response, and you can do this back and forth.
+
+Here is an example:
+
+```
+/system You are an expert on lua and neovim plugin development.
+
+/you
+
+/buf 1: init.lua
+
+How to blablabla?
+
+/assistance:
+...
+```
 
 ### Context-Aware Assistance
 
