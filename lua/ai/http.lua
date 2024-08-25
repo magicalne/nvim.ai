@@ -29,6 +29,7 @@ M.stream = function(system_prompt, prompt, on_chunk, on_complete)
 
   local handler_opts = { on_chunk = on_chunk, on_complete = on_complete }
   local spec = Provider.parse_curl_args(Config.get_provider(provider), code_opts)
+  print('spec', vim.inspect(spec))
 
   ---@param line string
   local function parse_stream_data(line)
@@ -74,6 +75,7 @@ M.stream = function(system_prompt, prompt, on_chunk, on_complete)
       end)
     end,
     on_error = function(err)
+      error('http error', vim.inspect(err))
       on_complete(err)
     end,
     callback = function(_)
