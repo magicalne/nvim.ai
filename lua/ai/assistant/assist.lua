@@ -142,7 +142,6 @@ M.parse_chat_prompt = function(input_string)
   end
 
   local user_prompt = table.concat(user_prompt_lines, "\n"):gsub("^%s*(.-)%s*$", "%1")
-  print('buffers', vim.inspect(buffers))
   local prompt
   if #buffers > 0 then
     local document = build_document(buffers)

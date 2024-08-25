@@ -36,6 +36,13 @@ M.defaults = {
     max_tokens = 4096,
     ["local"] = false,
   },
+  cohere = {
+    endpoint = "https://api.cohere.com",
+    model = "command-r-plus", -- or command-r
+    temperature = 0,
+    max_tokens = 4096,
+    ["local"] = false,
+  },
   openai = {
     endpoint = "https://api.openai.com",
     model = "gpt-4o",
