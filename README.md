@@ -72,8 +72,8 @@ sources = cmp.config.sources({
 #### Chat
 - <kbd>Leader</kbd><kbd>c</kbd> -- Toggle chat
 - <kbd>q</kbd> -- Close chat
-- <kbd><Enter></kbd> -- Send message in normal mode
-- <kbd>Contrl</kbd><kbd>l</kbd -- Clear chat history
+- <kbd>Enter</kbd> -- Send message in normal mode
+- <kbd>Contrl</kbd><kbd>l</kbd> -- Clear chat history
 
 #### Inline Assist
 
@@ -89,7 +89,7 @@ The chat dialog is a special buffer. `nvim.ai` will parse the content with keywo
 - **/system**: You can overwrite the system prompt by inserting `/system your_system_prompt` in the first line.
 - **/you**: Lines after this are your prompt.
   - You can add buffers with `/buf {bufnr}` (Autocomplete with `nvim_cmp_source` in `cmp` is recommended.)
-  - Once you finish your prompt, you can send the request by pressing <CR> in normal mode.
+  - Once you finish your prompt, you can send the request by pressing `Enter` in normal mode.
 - **/assistant**: The streaming content from LLM will appear below this line.
 Since the chat dialog is just a buffer, you can edit anything in it. Be aware that only the last block of `/you` will be treated as the prompt.
 Just like Zed AI, this feature is called "chat with context." You can edit the last prompt if you don't like the response, and you can do this back and forth.
@@ -113,7 +113,7 @@ How to blablabla?
 
 #### Inline Assist
 
-By pressing <leader>i and typing your instruction, you can insert a code block anywhere in the current file.
+By pressing <kbd>leader</kbd><kbd>i</kbd> and typing your instruction, you can insert a code block anywhere in the current file.
 Alternatively, you can run the command with `:NvimAIInlineAssist {YOUR_PROMPT}`.
 
 ## Contributing
