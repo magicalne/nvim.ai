@@ -41,9 +41,21 @@ local function build_document(buffer_numbers)
   local contents = {}
   for _, bufnr in ipairs(buffer_numbers) do
     if vim.api.nvim_buf_is_valid(bufnr) then
+      -- get the file name without parent directory
+      local full_path = vim.api.nvim_buf_get_name(bufnr)
+      local filename = vim.fn.fnamemodify(full_path, ":t")
+
+      -- get the file type, or empty string if not available
+      local filetype = vim.api.nvim_buf_get_option(bufnr, 'filetype') or ''
+
+      -- get buffer content
       local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
       local buffer_content = table.concat(lines, "\n")
-      table.insert(contents, buffer_content)
+
+      -- format the content
+      local formatted_content = string.format("%s\n```%s\n%s\n```", filename, filetype, buffer_content)
+
+      table.insert(contents, formatted_content)
     end
   end
   return table.concat(contents, "\n\n")
@@ -109,14 +121,13 @@ local function build_inline_context(user_prompt, language_name, is_insert)
       "code"
 
   local result = {
-    buffers = buffers,
     document_content = document,
     user_prompt = user_prompt,
     language_name = language_name,
     content_type = content_type,
     is_insert = is_insert, -- TODO: assist inline
-    rewrite_section = nil, -- TODO
-    is_truncated = nil,    -- TODO
+    rewrite_section = nil, -- TODO: Rewrite section
+    is_truncated = nil,    -- TODO: The code length could be larger than the context
   }
   return result
 end

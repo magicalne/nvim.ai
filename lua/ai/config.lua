@@ -78,22 +78,23 @@ M.defaults = {
 
   -- Keymaps
   keymaps = {
-    toggle = "<leader>ct", -- Toggle chat dialog
-    send = "<CR>",         -- Send message in normal mode
-    newline = "<C-j>",     -- Insert newline in insert mode
-    close = "q",           -- Close chat dialog
-    clear = "<C-l>",       -- Clear chat history
+    toggle = "<leader>c",       -- Toggle chat dialog
+    send = "<CR>",               -- Send message in normal mode
+    close = "q",                 -- Close chat dialog
+    clear = "<C-l>",             -- Clear chat history
+    inline_assist = "<leader>i", -- Run InlineAssist command with prompt
+    accept_code = "<leader>ia",
+    reject_code = "<leader>ij",
   },
 
   -- Behavior
   behavior = {
-    auto_open = true,                                              -- Automatically open dialog when sending a message
-    save_history = true,                                           -- Save chat history between sessions
-    history_file = vim.fn.stdpath("data") .. "/chat_history.json", -- Path to save chat history
-    context_lines = 10,                                            -- Number of lines of code context to include in prompts
+    auto_open = true,                     -- Automatically open dialog when sending a message
+    save_history = true,                  -- Save chat history between sessions
+    history_dir = vim.fn.stdpath("data"), -- Path to save chat history
   },
 
-  -- Appearance
+  -- TODO: Appearance
   appearance = {
     icons = {
       user = "🧑", -- Icon for user messages
@@ -135,7 +136,7 @@ function M.setup(user_config)
   -- end
 end
 
-function M:get(what)
+function M.get(what)
   return M.config[what]
 end
 
