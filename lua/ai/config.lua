@@ -29,9 +29,9 @@ M.defaults = {
 
   -- LLM configuration
   provider = "ollama",
-  anthropic = {
-    endpoint = "https://api.anthropic.com",
-    model = "claude-3-5-sonnet-20240620",
+  deepseek = {
+    endpoint = "https://api.deepseek.com",
+    model = "deepseek-chat", -- or command-r
     temperature = 0,
     max_tokens = 4096,
     ["local"] = false,
@@ -46,6 +46,13 @@ M.defaults = {
   groq = {
     endpoint = "https://api.groq.com",
     model = "llama-3.1-70b-versatile", -- or llama3.1-7b-instant, llama3.1:405b, gemma2-9b-it
+    temperature = 0,
+    max_tokens = 4096,
+    ["local"] = false,
+  },
+  anthropic = {
+    endpoint = "https://api.anthropic.com",
+    model = "claude-3-5-sonnet-20240620",
     temperature = 0,
     max_tokens = 4096,
     ["local"] = false,

@@ -75,7 +75,7 @@ M.stream = function(system_prompt, prompt, on_chunk, on_complete)
       end)
     end,
     on_error = function(err)
-      error('http error', vim.inspect(err))
+      print('http error', vim.inspect(err))
       on_complete(err)
     end,
     callback = function(_)
