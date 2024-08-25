@@ -6,15 +6,6 @@
 
 ![Chat With Buffers](https://private-user-images.githubusercontent.com/1769664/361227909-32f9b649-32af-4a0c-8c79-be3647ccc953.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MjQ1ODU2MDksIm5iZiI6MTcyNDU4NTMwOSwicGF0aCI6Ii8xNzY5NjY0LzM2MTIyNzkwOS0zMmY5YjY0OS0zMmFmLTRhMGMtOGM3OS1iZTM2NDdjY2M5NTMucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI0MDgyNSUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNDA4MjVUMTEyODI5WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9NGUxNDdiZDllMDI3NzEzYjZkZDViOWY1ZjYxN2MwYWEwZTQ1OTVjZmY2NGVlZGIzMTg1MTZlYmRjYzZmMGEwMiZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.DvLm_BBDsTEHDDVuvlYcN8GF1Cv9gXbamRn3HKG3HO8)
 
-## Supportd LLM providers
-
-- ollama
-- anthropic
-- deepseek
-- groq
-- cohere
-- [ ] openai
-
 ## Features
 
 - 🤖 Chat with buffers: Interact with AI about your code and documents
@@ -23,12 +14,12 @@
  - ✅ Code insertion
  - 🚧 Code rewriting (Work in Progress)
 - 🌐 Multiple LLM provider support:
- - Ollama (local)
- - Anthropic
- - Deepseek
- - Groq
- - Cohere
- - OpenAI (not tested)
+   - Ollama (local)
+   - Anthropic
+   - Deepseek
+   - Groq
+   - Cohere
+   - OpenAI (not tested)
 - 🔧 Easy integration with nvim-cmp for command autocompletion
 
 ## Install
