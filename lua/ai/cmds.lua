@@ -3,7 +3,6 @@ return {
   {
     cmd = "InlineAssist",
     callback = function(opts)
-      print('inline assist', opts.args)
       Assistant.inline(opts.args)
 
     end,
