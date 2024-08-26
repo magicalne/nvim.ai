@@ -32,7 +32,7 @@ Plug 'magicalne/nvim.ai', {'branch': 'main'}
 
 ## Config
 
-You can find all the config from [here](https://github.com/magicalne/nvim.ai/blob/main/lua/ai/config.lua#L16).
+You can find all the config and keymaps from [here](https://github.com/magicalne/nvim.ai/blob/main/lua/ai/config.lua#L16).
 
 ### Ollama
 
@@ -49,6 +49,17 @@ ai.setup({
 
 ### Others
 
+#### Add you api keys to your dotfile
+
+I put my keys in `~/.config/.env` and `source` it in my `.zshrc`.
+
+```sh
+export ANTHROPIC_API_KEY=""
+export CO_API_KEY=""
+export GROQ_API_KEY=""
+export DEEPSEEK_API_KEY=""
+```
+
 ```Lua
 local ai = require('ai')
 ai.setup({
@@ -58,7 +69,7 @@ ai.setup({
 
 ### Integrate with cmp
 
-If may want to autocomplete commands with `cmp`:
+You may want to autocomplete commands with `cmp`:
 
 ```Lua
 sources = cmp.config.sources({
