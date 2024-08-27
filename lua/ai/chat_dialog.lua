@@ -22,6 +22,7 @@ local function create_buf()
   local buf = api.nvim_create_buf(false, true)
   api.nvim_buf_set_option(buf, 'buftype', 'nofile')
   api.nvim_buf_set_option(buf, 'bufhidden', 'hide')
+  api.nvim_buf_set_option(buf, 'buflisted', false)
   api.nvim_buf_set_option(buf, 'swapfile', false)
   api.nvim_buf_set_option(buf, 'filetype', config.FLIE_TYPE)
   return buf
@@ -129,6 +130,8 @@ function ChatDialog.open()
   api.nvim_win_set_option(state.win, 'wrap', true)
   api.nvim_win_set_option(state.win, 'linebreak', true) -- Wrap at word boundaries
   api.nvim_win_set_option(state.win, 'cursorline', true)
+  -- Return focus to the main window
+  vim.cmd('wincmd p')
 end
 
 function ChatDialog.close()
