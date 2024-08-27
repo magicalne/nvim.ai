@@ -3,9 +3,19 @@ local Assistant = require('ai.assistant')
 local ChatDialog = require("ai.chat_dialog")
 local Providers = require("ai.providers")
 local CmpSource = require("ai.cmp_source")
-local cmp = require('cmp')
 
 local M = {}
+
+local function setup_cmp()
+  local ok, cmp = pcall(require, 'cmp')
+  if not ok then
+    -- cmp is not installed, so we don't set it up
+    return
+  end
+
+  -- cmp is available, so we can set it up
+  cmp.register_source('nvimai_cmp_source', CmpSource.new())
+end
 
 M.setup_keymaps = function()
   -- Global keymaps
@@ -37,8 +47,6 @@ M.setup = function(opts)
   -- Load the plugin's configuration
   ChatDialog:setup()
   Providers.setup()
-  -- Register the custom source
-  cmp.register_source('nvimai_cmp_source', CmpSource.new())
 
   -- create commands
   local cmds = require("ai.cmds")
