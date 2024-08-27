@@ -24,11 +24,11 @@ M.setup_keymaps = function()
 
   -- Create an autocommand to set ChatDialog keymaps when entering the chat-dialog buffer
   vim.api.nvim_create_autocmd("FileType", {
-    pattern = Config.FLIE_TYPE,
+    pattern = Config.FILE_TYPE,
     callback = set_chat_dialog_keymaps
   })
   -- automatically setup Avante filetype to markdown
-  vim.treesitter.language.register("markdown", Config.FLIE_TYPE)
+  vim.treesitter.language.register("markdown", Config.FILE_TYPE)
 end
 
 -- Setup function to initialize the plugin
