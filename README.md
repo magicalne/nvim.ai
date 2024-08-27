@@ -24,10 +24,53 @@
 
 ## Install
 
+### vim-plug
 ```
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'nvim-lua/plenary.nvim'
 Plug 'magicalne/nvim.ai', {'branch': 'main'}
+```
+
+### Lazy
+
+```Lua
+-- Setup lazy.nvim
+require("lazy").setup({
+  spec = {
+    -- cmp is optional
+    {
+      "hrsh7th/nvim-cmp",
+      event = "InsertEnter",
+      dependencies = {
+        "hrsh7th/cmp-nvim-lsp",
+        "hrsh7th/cmp-buffer",
+      },
+      config = function()
+        local cmp = require'cmp'
+        cmp.setup({
+          mapping = {
+            sources = cmp.config.sources({
+              { name = 'nvimai_cmp_source' }, -- This is optional but recommended
+            })
+          }
+        })
+      end,
+    },
+    {"nvim-treesitter/nvim-treesitter", build = ":TSUpdate"}, -- nvim.ai depends on treesitter
+    {
+      "magicalne/nvim.ai",
+      dependencies = {
+        "nvim-lua/plenary.nvim",
+        "nvim-treesitter/nvim-treesitter",
+      },
+      opts = {
+        provider = "anthropic", -- You can configure your provider, model or keymaps here.
+      }
+    },
+
+  },
+  -- ...
+})
 ```
 
 ## Config
