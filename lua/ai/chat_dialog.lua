@@ -139,6 +139,7 @@ function ChatDialog.close()
     api.nvim_win_close(ChatDialog.state.win, true)
   end
   ChatDialog.state.win = nil
+  ChatDialog.state.buf = nil
 end
 
 function ChatDialog.toggle()
