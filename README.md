@@ -101,12 +101,13 @@ export ANTHROPIC_API_KEY=""
 export CO_API_KEY=""
 export GROQ_API_KEY=""
 export DEEPSEEK_API_KEY=""
+export MISTRAL_API_KEY=""
 ```
 
 ```Lua
 local ai = require('ai')
 ai.setup({
-  provider = "deepseek", --  "anthropic", "groq", "cohere"
+  provider = "deepseek", --  "anthropic", "groq", "cohere", "mistral"
 })
 ```
 

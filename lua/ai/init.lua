@@ -47,6 +47,7 @@ M.setup = function(opts)
   -- Load the plugin's configuration
   ChatDialog:setup()
   Providers.setup()
+  setup_cmp()
 
   -- create commands
   local cmds = require("ai.cmds")

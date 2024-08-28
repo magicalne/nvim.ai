@@ -57,6 +57,13 @@ M.defaults = {
     max_tokens = 4096,
     ["local"] = false,
   },
+  mistral = {
+    endpoint = "https://api.mistral.ai",
+    model = "mistral-large-latest", -- or open-mistral-nemo, codestral-latest, open-mistral-7b, open-mixtral-8x22b
+    temperature = 0,
+    max_tokens = 4096,
+    ["local"] = false,
+  },
   openai = {
     endpoint = "https://api.openai.com",
     model = "gpt-4o",
