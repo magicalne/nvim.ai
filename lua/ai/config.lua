@@ -64,6 +64,13 @@ M.defaults = {
     max_tokens = 4096,
     ["local"] = false,
   },
+  hyperbolic= {
+    endpoint = "https://api.hyperbolic.xyz",
+    model = "meta-llama/Meta-Llama-3.1-70B-Instruct", -- or meta-llama/Meta-Llama-3.1-405B
+    temperature = 0,
+    max_tokens = 4096,
+    ["local"] = false,
+  },
   openai = {
     endpoint = "https://api.openai.com",
     model = "gpt-4o",
