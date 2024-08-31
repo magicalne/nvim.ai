@@ -43,6 +43,13 @@ M.defaults = {
     max_tokens = 4096,
     ["local"] = false,
   },
+  snova = {
+    endpoint = "https://fast-api.snova.ai",
+    model = "Meta-Llama-3.1-405B-Instruct", -- or Meta-Llama-3.1-70B-Instruct, Meta-Llama-3.1-8B-Instruct
+    temperature = 0,
+    max_tokens = 4096,
+    ["local"] = false,
+  },
   groq = {
     endpoint = "https://api.groq.com",
     model = "llama-3.1-70b-versatile", -- or llama3.1-7b-instant, llama3.1:405b, gemma2-9b-it
