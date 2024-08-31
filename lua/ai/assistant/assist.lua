@@ -161,11 +161,11 @@ M.parse_inline_assist_prompt = function(raw_prompt, language_name, is_insert, st
   return prompt
 end
 
-M.parse_chat_prompt = function(input_string)
+M.parse_user_message = function(lines)
   local buffers = {}
   local user_prompt_lines = {}
   -- parse slash commands
-  for line in input_string:gmatch("[^\r\n]+") do
+  for _, line in ipairs(lines) do
     local buf_match = line:match("^/buf%s+(%d+)")
     if buf_match then
       table.insert(buffers, tonumber(buf_match))

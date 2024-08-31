@@ -2,7 +2,7 @@ ContentPrompt = require("ai.assistant.prompts.content_prompt")
 M = {}
 
 M.GLOBAL_SYSTEM_PROMPT = [[
-You are an Al programming assistant named "CodeCompanion".
+You are an Al programming assistant.
 You are currently plugged in to the Neovim text editor on a user's machine.
 
 Your tasks include:

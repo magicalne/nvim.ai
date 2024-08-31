@@ -26,7 +26,7 @@ function M.parse_response(data_stream, _, opts)
   end
 end
 
-function M.parse_curl_args(provider, code_opts)
+function M.parse_curl_args(provider, request)
   local base, body_opts = P.parse_config(provider)
 
   local headers = {
@@ -37,13 +37,12 @@ function M.parse_curl_args(provider, code_opts)
   local messages = {
     {
       role = "system",
-      content = code_opts.system_prompt
+      content = request.system_prompt
     },
-    {
-      role = "user",
-      content = code_opts.base_prompt
-    }
   }
+  for _, message in ipairs(request.messages) do
+    table.insert(messages, message)
+  end
 
   return {
     url = Utils.trim(base.endpoint, { suffix = "/" }) .. "/openai/v1/chat/completions",

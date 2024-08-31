@@ -1,6 +1,7 @@
 local Config = require('ai.config')
 local Assist = require('ai.assistant.assist')
 local Http = require('ai.http')
+local ChatDialog = require('ai.chat_dialog')
 local Prompts = require('ai.assistant.prompts')
 
 local ESC_FEEDKEY = vim.api.nvim_replace_termcodes("<ESC>", true, false, true)
@@ -66,49 +67,20 @@ function Inline:on_complete(is_insert)
   self:insert_lines()
 end
 
-
-
-function Inline:accept_code()
-  if not self.state.start_line or not self.state.end_line then
-    print('No code to accept')
-    return
-  end
-
-  vim.schedule(function()
-    vim.api.nvim_buf_set_lines(0, self.state.start_line, self.state.start_line + 1, false, {})
-    self.state.cursor_line = self.state.cursor_line - 1
-    vim.fn.cursor(self.state.cursor_line, 1)
-
-    if self.state.end_line > self.state.start_line then
-      vim.api.nvim_buf_set_lines(0, self.state.end_line - 2, self.state.end_line - 1, false, {})
-      self.state.cursor_line = self.state.cursor_line - 1
-      vim.fn.cursor(self.state.cursor_line, 1)
-    end
-  end)
-end
-
-function Inline:reject_code()
-  if not self.state.start_line or not self.state.end_line then
-    print('No code to reject')
-    return
-  end
-
-  vim.schedule(function()
-    -- for section rewriting
-    if self.state.original_code_block then
-      vim.api.nvim_buf_set_lines(0, self.state.start_line, self.state.end_line, false, self.state.original_code_block)
-    else
-      vim.api.nvim_buf_set_lines(0, self.state.start_line, self.state.end_line, false, {})
-    end
-
-    self.state.cursor_line = self.state.cursor_line - (self.state.end_line - self.state.start_line)
-    vim.fn.cursor(self.state.cursor_line, 1)
-  end)
-end
-
 function Inline:start(prompt, is_insert)
   local system_prompt = Prompts.GLOBAL_SYSTEM_PROMPT
-  Http.stream(system_prompt, prompt, function(text) self:append_text(text) end, function() self:on_complete(is_insert) end)
+  local last_message = ChatDialog.get_last_assist_message()
+  local messages = {}
+  if last_message ~= nil then
+    table.insert(messages, last_message)
+  end
+  local user_message = {
+    role = "user",
+    content = prompt
+  }
+  table.insert(messages, user_message)
+
+  Http.stream(system_prompt, messages, function(text) self:append_text(text) end, function() self:on_complete(is_insert) end)
 end
 
 local function get_visual_selection_lines()

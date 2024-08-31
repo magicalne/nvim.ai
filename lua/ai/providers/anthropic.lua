@@ -33,7 +33,7 @@ M.parse_response = function(data_stream, _, opts)
   end
 end
 
-M.parse_curl_args = function(provider, code_opts)
+M.parse_curl_args = function(provider, request)
   local base, body_opts = P.parse_config(provider)
 
   local headers = {
@@ -49,8 +49,8 @@ M.parse_curl_args = function(provider, code_opts)
     headers = headers,
     body = vim.tbl_deep_extend("force", {
       model = base.model,
-      system = code_opts.system_prompt,
-      messages = M.parse_message(code_opts),
+      system = request.system_prompt,
+      messages = request.messages,
       stream = true,
       max_tokens = base.max_tokens or 4096,
       temperature = base.temperature or 0.7,

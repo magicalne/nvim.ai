@@ -1,5 +1,6 @@
 local Utils = require("ai.utils")
 local Config = require("ai.config")
+local ChatDialog = require("ai.chat_dialog")
 local P = require("ai.providers")
 
 local M = {}
@@ -23,13 +24,34 @@ M.parse_response = function(data_stream, _, opts)
   end
 end
 
-M.parse_curl_args = function(provider, code_opts)
+local function divide_table(t)
+  local last_element = t[#t]
+  local rest_of_table = {}
+
+  for i = 1, #t - 1 do
+    rest_of_table[i] = t[i]
+  end
+
+  return rest_of_table, last_element
+end
+M.parse_curl_args = function(provider, request)
   local base, body_opts = P.parse_config(provider)
 
   local headers = {
     ["Content-Type"] = "application/json",
     ["Authorization"] = "bearer " .. os.getenv(M.API_KEY),
   }
+
+  local messages = {}
+  for i = 1, #request.messages - 1 do
+    local message = request.messages[i]
+    if message.role == ChatDialog.ROLE_USER then
+      table.insert(messages, { role = "USER", message = message.content })
+    elseif message.role == ChatDialog.ROLE_ASSISTANT then
+      table.insert(messages, { role = "CHATBOT", message = message.content })
+    end
+  end
+  local prompt = request.messages[#request.messages].content
 
   return {
     url = Utils.trim(base.endpoint, { suffix = "/" }) .. "/v1/chat",
@@ -38,11 +60,12 @@ M.parse_curl_args = function(provider, code_opts)
     headers = headers,
     body = vim.tbl_deep_extend("force", {
       model = base.model,
-      message = code_opts.base_prompt,
+      message = prompt,
       premble = {
         role = "SYSTEM",
-        message = code_opts.system_prompt
+        message = request.system_prompt
       },
+      chat_history = messages,
       stream = true,
       max_tokens = base.max_tokens or 4096,
       temperature = base.temperature or 0.7,

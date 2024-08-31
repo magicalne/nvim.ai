@@ -45,9 +45,9 @@ M.defaults = {
   },
   snova = {
     endpoint = "https://fast-api.snova.ai",
-    model = "Meta-Llama-3.1-405B-Instruct", -- or Meta-Llama-3.1-70B-Instruct, Meta-Llama-3.1-8B-Instruct
+    model = "Meta-Llama-3.1-70B-Instruct", -- or Meta-Llama-3.1-70B-Instruct, Meta-Llama-3.1-8B-Instruct, Meta-Llama-3.1-405B-Instruct
     temperature = 0,
-    max_tokens = 4096,
+    max_tokens = 3000, --sambanova's context is smaller: https://community.sambanova.ai/t/quick-start-guide/104
     ["local"] = false,
   },
   groq = {
@@ -104,8 +104,6 @@ M.defaults = {
     close = "q",                 -- Close chat dialog
     clear = "<C-l>",             -- Clear chat history
     inline_assist = "<leader>i", -- Run InlineAssist command with prompt
-    accept_code = "<leader>ia",
-    reject_code = "<leader>ij",
   },
 
   -- Behavior

@@ -22,8 +22,6 @@ M.setup_keymaps = function()
   local keymaps = Config.get('keymaps')
   vim.keymap.set({ "n", "v" }, keymaps.toggle, ChatDialog.toggle, { noremap = true, silent = true })
   vim.keymap.set({ "n", "v" }, keymaps.inline_assist, Assistant.inline, { noremap = true, silent = true })
-  vim.keymap.set("n", keymaps.accept_code, Assistant.accept_code, { noremap = true, silent = true })
-  vim.keymap.set("n", keymaps.reject_code, Assistant.reject_code, { noremap = true, silent = true })
   -- Buffer-specific keymaps for ChatDialog
   local function set_chat_dialog_keymaps()
     local opts = { noremap = true, silent = true, buffer = true }

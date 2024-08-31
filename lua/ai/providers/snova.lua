@@ -5,7 +5,7 @@ local P = require("ai.providers")
 
 local M = {}
 
-M.API_KEY = "FATT_API_KEY"
+M.API_KEY = "FAST_API_KEY"
 
 function M.has()
   return vim.fn.executable("curl") == 1 and os.getenv(M.API_KEY) ~= nil
@@ -15,11 +15,18 @@ function M.parse_response(data_stream, _, opts)
   if data_stream == nil or data_stream == "" then
     return
   end
+  if not data_stream:match("^data") then
+    print('Rate limit: ', data_stream)
+    return
+  end
   local data_match = data_stream:match("^data: (.+)$")
   if data_match == '[DONE]' then
     opts.on_complete(nil)
   else
     local json = vim.json.decode(data_match)
+    if json.error then
+      print('SAMBA request error: ', json.error.message)
+    end
     if json.choices and #json.choices > 0 then
       local content = json.choices[1].delta.content or ''
       opts.on_chunk(content)
@@ -27,7 +34,7 @@ function M.parse_response(data_stream, _, opts)
   end
 end
 
-function M.parse_curl_args(provider, code_opts)
+function M.parse_curl_args(provider, request)
   local base, body_opts = P.parse_config(provider)
 
   local headers = {
@@ -38,13 +45,12 @@ function M.parse_curl_args(provider, code_opts)
   local messages = {
     {
       role = "system",
-      content = code_opts.system_prompt
+      content = request.system_prompt
     },
-    {
-      role = "user",
-      content = code_opts.base_prompt
-    }
   }
+  for _, message in ipairs(request.messages) do
+    table.insert(messages, message)
+  end
 
   return {
     url = Utils.trim(base.endpoint, { suffix = "/" }) .. "/v1/chat/completions",
