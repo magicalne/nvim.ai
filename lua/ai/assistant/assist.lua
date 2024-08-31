@@ -61,40 +61,56 @@ local function build_document(buffer_numbers)
   return table.concat(contents, "\n\n")
 end
 
-local function get_prefix_suffix()
+local function get_prefix_block_suffix(start_line, end_line)
   -- Get the current buffer number
   local bufnr = vim.api.nvim_get_current_buf()
-
-  -- Get the current cursor line number
-  local cur_line = vim.fn.line(".")
 
   -- Get the total number of lines in the buffer
   local total_lines = vim.api.nvim_buf_line_count(bufnr)
 
   -- Get the prefix (lines before the cursor)
   local prefix = {}
-  for i = 1, cur_line - 1 do
+  for i = 1, start_line - 1 do
     table.insert(prefix, vim.api.nvim_buf_get_lines(bufnr, i - 1, i, true)[1])
+  end
+
+  -- Get the block (lines between start_line and end_line, inclusive)
+  local block = {}
+  if start_line < end_line then
+    for i = start_line, end_line do
+      table.insert(block, vim.api.nvim_buf_get_lines(bufnr, i - 1, i, true)[1])
+    end
   end
 
   -- Get the suffix (lines after the cursor)
   local suffix = {}
-  for i = cur_line + 1, total_lines do
+  for i = end_line + 1, total_lines do
     table.insert(suffix, vim.api.nvim_buf_get_lines(bufnr, i - 1, i, true)[1])
   end
 
-  return table.concat(prefix, "\n"), table.concat(suffix, "\n")
+  return table.concat(prefix, "\n"), table.concat(block, "\n"), table.concat(suffix, "\n")
 end
 
-local function build_inline_document()
-  local prefix, suffix = get_prefix_suffix()
+local function build_inline_document(is_insert, start_line, end_line)
+  local prefix, block, suffix = get_prefix_block_suffix(start_line, end_line)
 
-  -- Add '<insert_here>' in the middle
-  return table.concat({
-    prefix,
-    "<insert_here></insert_here>",
-    suffix
-  }, "\n\n")
+  if is_insert then
+    -- Add '<insert_here>' in the middle
+    return table.concat({
+      prefix,
+      "<insert_here></insert_here>",
+      suffix
+    }, "\n\n")
+  else
+    -- TODO: rewrite section
+    return table.concat({
+      prefix,
+      "<rewrite_this>",
+      block,
+      "</rewrite_this>",
+      suffix
+    }, "\n\n")
+  end
 end
 
 -- @param input_string string The raw input string containing user prompt and slash commands
@@ -108,10 +124,12 @@ end
 --   - is_insert: boolean indicating if it's an insert operation
 --   - rewrite_section: nil (TODO)
 --   - is_truncated: nil (TODO)
-local function build_inline_context(user_prompt, language_name, is_insert)
+local function build_inline_context(user_prompt, language_name, is_insert, start_line, end_line)
   -- TODO: rewrite section
+  -- Get the current cursor line number
+  local cur_line = vim.fn.line(".")
 
-  local document = build_inline_document()
+  local document = build_inline_document(is_insert, start_line, end_line)
 
   if language_name == nil then
     language_name = get_buffer_filetype()
@@ -132,18 +150,22 @@ local function build_inline_context(user_prompt, language_name, is_insert)
   return result
 end
 
-M.parse_inline_assist_prompt = function(raw_prompt, language_name, is_insert)
-  local context = build_inline_context(raw_prompt, language_name, is_insert)
+-- TODO: How to implement the feature: `apply the change` in zed ai?
+-- Zed caches all the messages in the assistant panel.
+-- Zed builds prompt for the current buffer.
+-- Then append the prompt in the end of messages.
+M.parse_inline_assist_prompt = function(raw_prompt, language_name, is_insert, start_line, end_line)
+  local context = build_inline_context(raw_prompt, language_name, is_insert, start_line, end_line)
   local prompt_template = Prompts.CONTENT_PROMPT
   local prompt = lustache:render(prompt_template, context)
   return prompt
 end
 
-M.parse_chat_prompt = function(input_string)
+M.parse_user_message = function(lines)
   local buffers = {}
   local user_prompt_lines = {}
   -- parse slash commands
-  for line in input_string:gmatch("[^\r\n]+") do
+  for _, line in ipairs(lines) do
     local buf_match = line:match("^/buf%s+(%d+)")
     if buf_match then
       table.insert(buffers, tonumber(buf_match))

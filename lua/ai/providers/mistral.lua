@@ -1,6 +1,7 @@
 local Utils = require("ai.utils")
 local Config = require("ai.config")
 local P = require("ai.providers")
+local ChatDialog = require('ai.chat_dialog')
 
 local M = {}
 
@@ -26,7 +27,7 @@ function M.parse_response(data_stream, _, opts)
   end
 end
 
-function M.parse_curl_args(provider, code_opts)
+function M.parse_curl_args(provider, request)
   local base, body_opts = P.parse_config(provider)
 
   local headers = {
@@ -37,13 +38,13 @@ function M.parse_curl_args(provider, code_opts)
   local messages = {
     {
       role = "system",
-      content = code_opts.system_prompt
+      content = request.system_prompt
     },
-    {
-      role = "user",
-      content = code_opts.base_prompt
-    }
   }
+
+  for _, m in ipairs(request.messages) do
+    table.insert(messages, m)
+  end
 
   return {
     url = Utils.trim(base.endpoint, { suffix = "/" }) .. "/v1/chat/completions",
@@ -62,6 +63,3 @@ function M.parse_curl_args(provider, code_opts)
 end
 
 return M
-
-
-

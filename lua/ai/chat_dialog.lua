@@ -1,10 +1,16 @@
+local Providers = require('ai.providers')
+local Http = require('ai.http')
 local config = require('ai.config')
 local Utils = require('ai.utils')
-local Assistant = require('ai.assistant')
+local Assist= require('ai.assistant.assist')
+local Prompts = require('ai.assistant.prompts')
 local api = vim.api
 local fn = vim.fn
 
+
 local ChatDialog = {}
+ChatDialog.ROLE_USER = "user"
+ChatDialog.ROLE_ASSISTANT = "assistant"
 
 ChatDialog.config = {
   width = 40,
@@ -60,6 +66,62 @@ local function generate_chat_filename()
   local timestamp = os.date("%Y%m%d_%H%M%S")
   local filename = save_dir .. '/chat_' .. timestamp .. '.md'
   return filename
+end
+
+function parse_messages(lines)
+  local result = {}
+  local current_role = nil
+  local current_content = {}
+
+  for _, line in ipairs(lines) do
+    if line:match("^/you") then
+      if current_role then
+        table.insert(result, {
+          role = current_role,
+          content = table.concat(current_content, "\n")
+        })
+        current_content = {}
+      end
+      current_role = ChatDialog.ROLE_USER
+    elseif line:match("^/assistant") then
+      if current_role then
+        local content
+        if current_role == ChatDialog.ROLE_USER then
+          -- parse slash commands in user prompt
+          content = Assist.parse_user_message(current_content)
+        else
+          content = table.concat(current_content, "\n")
+        end
+
+        table.insert(result, {
+          role = current_role,
+          content = content
+        })
+        current_content = {}
+      end
+      current_role = ChatDialog.ROLE_ASSISTANT
+    else
+      if current_role then
+        table.insert(current_content, line)
+      end
+    end
+  end
+
+  if current_role and #current_content > 0 then
+    local content
+        if current_role == ChatDialog.ROLE_USER then
+          -- parse slash commands in user prompt
+          content = Assist.parse_user_message(current_content)
+        else
+        content = table.concat(current_content, "\n")
+        end
+    table.insert(result, {
+      role = current_role,
+      content = content
+    })
+  end
+
+  return result
 end
 
 function ChatDialog.save_file()
@@ -151,6 +213,7 @@ function ChatDialog.toggle()
 end
 
 function ChatDialog.on_complete(t)
+  api.nvim_buf_set_option(ChatDialog.state.buf, "modifiable", true)
   ChatDialog.append_text("\n\n/you:\n")
   vim.schedule(function()
     ChatDialog.save_file()
@@ -197,11 +260,15 @@ function ChatDialog.clear()
 end
 
 function ChatDialog.send()
-  local system = ChatDialog.get_system_prompt()
+  local system = ChatDialog.get_system_prompt() or Prompts.GLOBAL_SYSTEM_PROMPT
   local prompt = ChatDialog.last_user_request()
+  local messages = ChatDialog.get_messages()
 
   ChatDialog.append_text("\n\n/assistant:\n")
-  Assistant.ask(system, prompt, ChatDialog.append_text, ChatDialog.on_complete)
+  -- Assistant.ask(system, messages, ChatDialog.append_text, ChatDialog.on_complete)
+  local provider = config.config.provider
+  local p = Providers.get(provider)
+  Http.stream(system, messages, ChatDialog.append_text, ChatDialog.on_complete)
 end
 
 function ChatDialog.get_system_prompt()
@@ -213,6 +280,26 @@ function ChatDialog.get_system_prompt()
       return line:match("^/system%s(.+)")
     end
   end
+  return nil
+end
+
+function ChatDialog.get_messages()
+  if not (ChatDialog.state.buf and api.nvim_buf_is_valid(ChatDialog.state.buf)) then return nil end
+  local lines = api.nvim_buf_get_lines(ChatDialog.state.buf, 0, -1, false)
+  return parse_messages(lines)
+end
+
+function ChatDialog.get_last_assist_message()
+  local messages = ChatDialog.get_messages()
+  if not messages then return nil end
+
+  for i = #messages, 1, -1 do
+    local message = messages[i]
+    if message.role == ChatDialog.ROLE_ASSISTANT then
+      return message
+    end
+  end
+
   return nil
 end
 

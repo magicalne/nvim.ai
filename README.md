@@ -12,7 +12,7 @@
 - 🧠 Context-aware AI assistance: Get relevant help based on your current work
 - 📝 Inline assistant:
  - ✅ Code insertion
- - 🚧 Code rewriting (Work in Progress)
+ - ✅ Code rewriting
 - 🌐 Multiple LLM provider support:
    - Ollama (local)
    - Anthropic
@@ -102,12 +102,13 @@ export CO_API_KEY=""
 export GROQ_API_KEY=""
 export DEEPSEEK_API_KEY=""
 export MISTRAL_API_KEY=""
+export HYPERBOLIC_API_KEY=""
 ```
 
 ```Lua
 local ai = require('ai')
 ai.setup({
-  provider = "deepseek", --  "anthropic", "groq", "cohere", "mistral"
+  provider = "deepseek", --  "anthropic", "groq", "cohere", "mistral", "hyperbolic"
 })
 ```
 
@@ -132,13 +133,12 @@ sources = cmp.config.sources({
 
 #### Inline Assist
 
-- <kbd>Leader</kbd><kbd>i</kbd> — Insert code in normal mode with prompt
-- <kbd>Leader</kbd><kbd>i</kbd><kbd>a</kbd> — Accept the inserted code
-- <kbd>Leader</kbd><kbd>i</kbd><kbd>j</kbd> — Reject the inserted code
+- <kbd>Leader</kbd><kbd>i</kbd> — Insert code in normal mode with prompt, or rewrite section with in visual/selection mode.
 
 ## Usage
 
 ### Chat
+
 
 The chat dialog is a special buffer. `nvim.ai` will parse the content with keywords. There are 3 roles in the buffer:
 - **/system**: You can overwrite the system prompt by inserting `/system your_system_prompt` in the first line.
@@ -147,7 +147,7 @@ The chat dialog is a special buffer. `nvim.ai` will parse the content with keywo
   - Once you finish your prompt, you can send the request by pressing `Enter` in normal mode.
 - **/assistant**: The streaming content from LLM will appear below this line.
 Since the chat dialog is just a buffer, you can edit anything in it. Be aware that only the last block of `/you` will be treated as the prompt.
-Just like Zed AI, this feature is called "chat with context." You can edit the last prompt if you don't like the response, and you can do this back and forth.
+Just like [Zed AI](https://zed.dev/docs/assistant/assistant-panel), this feature is called "chat with context." You can edit the last prompt if you don't like the response, and you can do this back and forth.
 
 Here is an example:
 
@@ -168,8 +168,15 @@ How to blablabla?
 
 #### Inline Assist
 
-By pressing <kbd>leader</kbd><kbd>i</kbd> and typing your instruction, you can insert a code block anywhere in the current file.
-Alternatively, you can run the command with `:NvimAIInlineAssist {YOUR_PROMPT}`.
+By pressing <kbd>leader</kbd><kbd>i</kbd> and typing your instruction, you can insert or rewrite a code block anywhere in the current file.
+Note that the `inline assist` can read the last `assistant content` in the sidebar. Therefore, you can ask the LLM about your code and instruct it to generate a new function. Then, you can insert this new function by running `inline assist` with the prompt: `Insert the function`.
+
+### Workflow with nvim.ai
+
+The new way of working with `nvim.ai` is:
+- Build context by chatting with the LLM.
+- Ask the LLM to generate code, including new code or rewriting existing code.
+- Apply the changes from the last chat using `inline assist`.
 
 ## Contributing
 

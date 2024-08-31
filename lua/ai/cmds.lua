@@ -22,26 +22,4 @@ return {
       nargs = "*",
     },
   },
-  {
-    cmd = "NvimAIAcceptCode",
-    callback = function(opts)
-      Assistant.accept_code()
-    end,
-    opts = {
-      desc = "Accept generated code",
-      range = true,
-      nargs = "*",
-    },
-  },
-  {
-    cmd = "NvimAIRejectCode",
-    callback = function(opts)
-      Assistant.reject_code()
-    end,
-    opts = {
-      desc = "Reject generated code",
-      range = true,
-      nargs = "*",
-    },
-  }
 }
