@@ -107,7 +107,7 @@ export MISTRAL_API_KEY=""
 ```Lua
 local ai = require('ai')
 ai.setup({
-  provider = "deepseek", --  "anthropic", "groq", "cohere", "mistral"
+  provider = "deepseek", --  "anthropic", "groq", "cohere", "mistral", "hyperbolic", "snova "
 })
 ```
 

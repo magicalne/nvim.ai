@@ -17,7 +17,10 @@ M.ask = function(system_prompt, raw_prompt, on_chunk, on_complete)
 end
 
 M.inline = function(prompt)
-  Inline:new(prompt)
+  vim.ui.input({ prompt = "Prompt:" }, function(input)
+    Inline:new(input)
+  end)
+
 end
 
 M.accept_code = function()

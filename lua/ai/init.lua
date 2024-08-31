@@ -21,7 +21,7 @@ M.setup_keymaps = function()
   -- Global keymaps
   local keymaps = Config.get('keymaps')
   vim.keymap.set({ "n", "v" }, keymaps.toggle, ChatDialog.toggle, { noremap = true, silent = true })
-  vim.keymap.set("n", keymaps.inline_assist, ":NvimAIInlineAssist", { noremap = true, silent = true })
+  vim.keymap.set({ "n", "v" }, keymaps.inline_assist, Assistant.inline, { noremap = true, silent = true })
   vim.keymap.set("n", keymaps.accept_code, Assistant.accept_code, { noremap = true, silent = true })
   vim.keymap.set("n", keymaps.reject_code, Assistant.reject_code, { noremap = true, silent = true })
   -- Buffer-specific keymaps for ChatDialog
@@ -40,7 +40,7 @@ M.setup_keymaps = function()
   -- automatically setup Avante filetype to markdown
   vim.treesitter.language.register("markdown", Config.FILE_TYPE)
 end
-
+--
 -- Setup function to initialize the plugin
 M.setup = function(opts)
   Config.setup(opts)

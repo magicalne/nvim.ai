@@ -3,24 +3,47 @@ local Assist = require('ai.assistant.assist')
 local Http = require('ai.http')
 local Prompts = require('ai.assistant.prompts')
 
+local ESC_FEEDKEY = vim.api.nvim_replace_termcodes("<ESC>", true, false, true)
+
 local Inline = {
   state = {
     code_block = '',
     cursor_line = nil,
     start_line = nil,
-    end_line = nil
+    end_line = nil,
+    original_code_block = {}
+
   }
 }
+
+function extract_code(text)
+    local lines = {}
+    local in_code_block = false
+
+    -- Split the text into lines
+    for line in text:gmatch("[^\r\n]+") do
+        if line:match("^```") then
+            in_code_block = not in_code_block
+        elseif in_code_block then
+            table.insert(lines, line)
+        end
+    end
+    -- Join the lines back into a single string
+    return table.concat(lines, "\n")
+end
 
 function Inline:insert_lines()
   vim.schedule(function()
     local lines = vim.split(self.state.code_block, '\n', true)
     for i, line in ipairs(lines) do
-      vim.api.nvim_buf_set_lines(0, self.state.cursor_line, self.state.cursor_line, false, {line})
-      self.state.cursor_line = self.state.cursor_line + 1
-      vim.fn.cursor(self.state.cursor_line, 1)
+      if not line:match("^```") then
+        vim.api.nvim_buf_set_lines(0, self.state.start_line + i - 1, self.state.start_line + i - 1, false, {line})
+        --vim.api.nvim_buf_set_lines(0, self.state.cursor_line-1, self.state.cursor_line-1, false, {line})
+        -- self.state.cursor_line = self.state.cursor_line + 1
+        -- vim.fn.cursor(self.state.cursor_line, 1)
+      end
     end
-    self.state.end_line = self.state.cursor_line
+    -- self.state.end_line = self.state.cursor_line
   end)
 end
 
@@ -28,9 +51,22 @@ function Inline:append_text(text)
   self.state.code_block = self.state.code_block .. text
 end
 
-function Inline:on_complete()
+function Inline:on_complete(is_insert)
+  print('is_insert', is_insert)
+  if not is_insert then
+    -- store old code block
+    local old = {}
+    for i = self.state.start_line, self.state.end_line do
+      table.insert(old, vim.api.nvim_buf_get_lines(0, i - 1, i, true)[1])
+    end
+    self.state.original_code_block = old
+    -- delete lines for rewriting section
+    vim.api.nvim_buf_set_lines(0, self.state.start_line - 1, self.state.end_line, false, {""})
+  end
   self:insert_lines()
 end
+
+
 
 function Inline:accept_code()
   if not self.state.start_line or not self.state.end_line then
@@ -58,23 +94,70 @@ function Inline:reject_code()
   end
 
   vim.schedule(function()
-    vim.api.nvim_buf_set_lines(0, self.state.start_line, self.state.end_line, false, {})
+    -- for section rewriting
+    if self.state.original_code_block then
+      vim.api.nvim_buf_set_lines(0, self.state.start_line, self.state.end_line, false, self.state.original_code_block)
+    else
+      vim.api.nvim_buf_set_lines(0, self.state.start_line, self.state.end_line, false, {})
+    end
+
     self.state.cursor_line = self.state.cursor_line - (self.state.end_line - self.state.start_line)
     vim.fn.cursor(self.state.cursor_line, 1)
   end)
 end
 
-function Inline:insert(prompt)
+function Inline:start(prompt, is_insert)
   local system_prompt = Prompts.GLOBAL_SYSTEM_PROMPT
-  Http.stream(system_prompt, prompt, function(text) self:append_text(text) end, function() self:on_complete() end)
+  Http.stream(system_prompt, prompt, function(text) self:append_text(text) end, function() self:on_complete(is_insert) end)
 end
 
+local function get_visual_selection_lines()
+    local mode = vim.api.nvim_get_mode().mode
+    -- Get the start and end positions of the visual selection
+    local start_pos = vim.fn.getpos("'<")
+    local end_pos = vim.fn.getpos("'>")
+
+    -- Extract the line numbers from the positions
+    local start_line = start_pos[2]
+    local end_line = end_pos[2]
+
+    -- Print the line numbers
+    print("Start line: " .. start_line)
+    print("End line: " .. end_line)
+
+    -- Return the line numbers
+    return start_line, end_line
+end
+
+
 function Inline:new(prompt)
-  self.state.code_block = ''
-  self.state.cursor_line = vim.fn.line('.') - 1
-  self.state.start_line = self.state.cursor_line
-  local parsed_prompt = Assist.parse_inline_assist_prompt(prompt, nil, true)
-  self:insert(parsed_prompt)
+    -- Check if we are in visual mode
+    local mode = vim.fn.mode()
+    print('mode', mode)
+    if mode ~= 'v' and mode ~= 'V' and mode ~= '' then
+      print('insert')
+      -- insert mode
+      self.state.code_block = ''
+      start_line = vim.fn.line('.')
+      self.state.cursor_line = start_line - 1
+      self.state.start_line = self.state.cursor_line
+      self.state.end_line = start_line - 1
+      local parsed_prompt = Assist.parse_inline_assist_prompt(prompt, nil, true, start_line, start_line)
+      self:start(parsed_prompt, true)
+    else
+      print('rewrite')
+      vim.api.nvim_feedkeys(ESC_FEEDKEY, "n", true)
+      vim.api.nvim_feedkeys("gv", "x", false)
+      vim.api.nvim_feedkeys(ESC_FEEDKEY, "n", true)
+      -- rewrite mode
+      local start_line, end_line = get_visual_selection_lines()
+      self.state.cursor_line = start_line
+      self.state.start_line = start_line
+      self.state.end_line = end_line
+      local parsed_prompt = Assist.parse_inline_assist_prompt(prompt, nil, false, start_line, end_line)
+      -- print('rewrite prompt', parsed_prompt)
+      self:start(parsed_prompt, false)
+    end
 end
 
 return Inline
