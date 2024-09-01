@@ -57,7 +57,6 @@ M.stream = function(system_prompt, messages, on_chunk, on_complete)
       on_complete(err)
     end,
     callback = function(resp)
-      print('callback :', vim.inspect(resp))
       active_job = nil
     end,
   })
