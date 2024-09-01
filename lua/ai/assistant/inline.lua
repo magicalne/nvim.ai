@@ -53,7 +53,6 @@ function Inline:append_text(text)
 end
 
 function Inline:on_complete(is_insert)
-  print('is_insert', is_insert)
   if not is_insert then
     -- store old code block
     local old = {}
@@ -93,10 +92,6 @@ local function get_visual_selection_lines()
     local start_line = start_pos[2]
     local end_line = end_pos[2]
 
-    -- Print the line numbers
-    print("Start line: " .. start_line)
-    print("End line: " .. end_line)
-
     -- Return the line numbers
     return start_line, end_line
 end
@@ -105,9 +100,7 @@ end
 function Inline:new(prompt)
     -- Check if we are in visual mode
     local mode = vim.fn.mode()
-    print('mode', mode)
     if mode ~= 'v' and mode ~= 'V' and mode ~= '' then
-      print('insert')
       -- insert mode
       self.state.code_block = ''
       start_line = vim.fn.line('.')
@@ -117,7 +110,6 @@ function Inline:new(prompt)
       local parsed_prompt = Assist.parse_inline_assist_prompt(prompt, nil, true, start_line, start_line)
       self:start(parsed_prompt, true)
     else
-      print('rewrite')
       vim.api.nvim_feedkeys(ESC_FEEDKEY, "n", true)
       vim.api.nvim_feedkeys("gv", "x", false)
       vim.api.nvim_feedkeys(ESC_FEEDKEY, "n", true)
@@ -127,7 +119,6 @@ function Inline:new(prompt)
       self.state.start_line = start_line
       self.state.end_line = end_line
       local parsed_prompt = Assist.parse_inline_assist_prompt(prompt, nil, false, start_line, end_line)
-      -- print('rewrite prompt', parsed_prompt)
       self:start(parsed_prompt, false)
     end
 end
