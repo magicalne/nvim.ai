@@ -18,7 +18,7 @@ M.parse_message = function(opts)
   }
 end
 
-M.parse_response = function(data_stream, _, opts)
+M.parse_response = function(data_stream, _, on_chunk)
   if data_stream == nil or data_stream == "" then
     return
   end
@@ -26,9 +26,9 @@ M.parse_response = function(data_stream, _, opts)
   if data_match ~= nil then
     local json = vim.json.decode(data_match)
     if json.type == 'content_block_delta' then
-      opts.on_chunk(json.delta.text)
-    elseif json.type == 'message_stop' then
-      opts.on_complete(nil)
+      on_chunk(json.delta.text)
+    --elseif json.type == 'message_stop' then
+    --  opts.on_complete(nil)
     end
   end
 end

@@ -10,18 +10,18 @@ function M.has()
   return vim.fn.executable("curl") == 1 and os.getenv(M.API_KEY) ~= nil
 end
 
-function M.parse_response(data_stream, _, opts)
+function M.parse_response(data_stream, _, on_chunk)
   if data_stream == nil or data_stream == "" then
     return
   end
   local data_match = data_stream:match("^data: (.+)$")
   if data_match == '[DONE]' then
-    opts.on_complete(nil)
+    --opts.on_complete(nil)
   else
     local json = vim.json.decode(data_match)
     if json.choices and #json.choices > 0 then
       local content = json.choices[1].delta.content or ''
-      opts.on_chunk(content)
+      on_chunk(content)
     end
   end
 end

@@ -25,7 +25,6 @@ M.stream = function(system_prompt, messages, on_chunk, on_complete)
 
   local Provider = P[provider]
 
-  local handler_opts = { on_chunk = on_chunk, on_complete = on_complete }
   local spec = Provider.parse_curl_args(Config.get_provider(provider), request)
 
   if active_job then
@@ -48,7 +47,7 @@ M.stream = function(system_prompt, messages, on_chunk, on_complete)
       end
       vim.schedule(function()
         if Config.config[provider] ~= nil and Provider.parse_response ~= nil then
-          Provider.parse_response(data, current_event_state, handler_opts)
+          Provider.parse_response(data, current_event_state, on_chunk)
         end
       end)
     end,
@@ -58,8 +57,10 @@ M.stream = function(system_prompt, messages, on_chunk, on_complete)
     end,
     callback = function(resp)
       active_job = nil
+      on_complete(nil)
     end,
   })
+
 
   api.nvim_create_autocmd("User", {
     group = group,

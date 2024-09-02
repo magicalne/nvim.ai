@@ -20,13 +20,13 @@ M.parse_message = function(request)
   return messages
 end
 
-M.parse_response = function(data_stream, _, opts)
+M.parse_response = function(data_stream, _, on_chunk)
     local json = vim.json.decode(data_stream)
     if json.done then
-        opts.on_complete(nil)
+        --opts.on_complete(nil)
         return
     else
-        opts.on_chunk(json.message.content)
+        on_chunk(json.message.content)
     end
 end
 
