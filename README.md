@@ -17,8 +17,12 @@
    - Ollama (local)
    - Anthropic
    - Deepseek
-   - Groq
    - Cohere
+   - Gemini
+   - Mistral
+   - Groq
+   - Sambanova
+   - Hyperbolic
    - OpenAI (not tested)
 - 🔧 Easy integration with nvim-cmp for command autocompletion
 
@@ -102,13 +106,23 @@ export CO_API_KEY=""
 export GROQ_API_KEY=""
 export DEEPSEEK_API_KEY=""
 export MISTRAL_API_KEY=""
+export GOOGLE_API_KEY=""
 export HYPERBOLIC_API_KEY=""
+export OPENROUTER_API_KEY=""
+export FAST_API_KEY=""
 ```
 
 ```Lua
 local ai = require('ai')
 ai.setup({
-  provider = "deepseek", --  "anthropic", "groq", "cohere", "mistral", "hyperbolic"
+  --provider = "snova",
+  --provider = "hyperbolic",
+  --provider = "gemini",
+  --provider = "mistral",
+  provider = "anthropic",
+  --provider = "deepseek",
+  --provider = "groq",
+  --provider = "cohere",
 })
 ```
 
@@ -129,7 +143,7 @@ sources = cmp.config.sources({
 - <kbd>Leader</kbd><kbd>c</kbd> -- Toggle chat
 - <kbd>q</kbd> -- Close chat
 - <kbd>Enter</kbd> -- Send message in normal mode
-- <kbd>Contrl</kbd><kbd>l</kbd> -- Clear chat history
+- <kbd>Control</kbd><kbd>l</kbd> -- Clear chat history
 
 #### Inline Assist
 
@@ -169,13 +183,13 @@ How to blablabla?
 #### Inline Assist
 
 By pressing <kbd>leader</kbd><kbd>i</kbd> and typing your instruction, you can insert or rewrite a code block anywhere in the current file.
-Note that the `inline assist` can read the last `assistant content` in the sidebar. Therefore, you can ask the LLM about your code and instruct it to generate a new function. Then, you can insert this new function by running `inline assist` with the prompt: `Insert the function`.
+Note that the `inline assist` can read the chat messages in the sidebar. Therefore, you can ask the LLM about your code and instruct it to generate a new function. Then, you can insert this new function by running `inline assist` with the prompt: `Insert the function`.
 
 ### Workflow with nvim.ai
 
 The new way of working with `nvim.ai` is:
 - Build context by chatting with the LLM.
-- Ask the LLM to generate code, including new code or rewriting existing code.
+- Ask the LLM to generate code.
 - Apply the changes from the last chat using `inline assist`.
 
 ## Contributing
