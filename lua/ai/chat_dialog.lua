@@ -213,9 +213,9 @@ function ChatDialog.toggle()
 end
 
 function ChatDialog.on_complete(t)
-  api.nvim_buf_set_option(ChatDialog.state.buf, "modifiable", true)
-  ChatDialog.append_text("\n\n/you:\n")
+  --api.nvim_buf_set_option(ChatDialog.state.buf, "modifiable", true)
   vim.schedule(function()
+    ChatDialog.append_text("\n\n/you:\n")
     ChatDialog.save_file()
   end)
 end

@@ -43,6 +43,15 @@ M.defaults = {
     max_tokens = 4096,
     ["local"] = false,
   },
+  -- api: https://aistudio.google.com/app/apikey
+  -- models: https://ai.google.dev/gemini-api/docs/models/gemini#gemini-1.5-pro
+  gemini = {
+    endpoint = "https://generativelanguage.googleapis.com",
+    model = "gemini-1.5-flash-latest", -- or gemini-1.5-pro-latest
+    temperature = 0,
+    max_tokens = 4096,
+    ["local"] = false,
+  },
   snova = {
     endpoint = "https://fast-api.snova.ai",
     model = "Meta-Llama-3.1-70B-Instruct", -- or Meta-Llama-3.1-70B-Instruct, Meta-Llama-3.1-8B-Instruct, Meta-Llama-3.1-405B-Instruct

@@ -11,15 +11,15 @@ M.has = function()
   return vim.fn.executable("curl") == 1 and os.getenv(M.API_KEY) ~= nil
 end
 
-M.parse_response = function(data_stream, _, opts)
+M.parse_response = function(data_stream, _, on_chunk)
   local json = vim.json.decode(data_stream)
   -- {"is_finished":false,"event_type":"text-generation","text":" person"}
   if json.is_finished then
-    opts.on_complete(nil)
+    --opts.on_complete(nil)
     return
   else
     if json.text ~= nil then
-      opts.on_chunk(json.text)
+      on_chunk(json.text)
     end
   end
 end
