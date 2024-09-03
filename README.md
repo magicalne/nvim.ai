@@ -10,9 +10,10 @@
 
 - 🤖 Chat with buffers: Interact with AI about your code and documents
 - 🧠 Context-aware AI assistance: Get relevant help based on your current work
-- 📝 Inline assistant:
- - ✅ Code insertion
- - ✅ Code rewriting
+- 📝 Inline assistant: Code insertion and rewriting
+- 🛠️Slash Commands:
+   - /buf with bufnr
+   - /diagnostics with bufnr
 - 🌐 Multiple LLM provider support:
    - Ollama (local)
    - Anthropic
