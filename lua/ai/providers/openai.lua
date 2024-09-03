@@ -39,8 +39,10 @@ M.parse_curl_args = function(provider, request)
 
   local headers = {
     ["Content-Type"] = "application/json",
-    ["Authorization"] = "Bearer " .. os.getenv(M.API_KEY),
   }
+  if not P.env.is_local("openai") then
+    headers["Authorization"] = "Bearer " .. os.getenv(M.API_KEY)
+  end
 
   local messages = {
     {
