@@ -37,7 +37,7 @@ end
 --- Read the content of multiple buffers into a single string
 -- @param buffer_numbers table A list of buffer numbers
 -- @return string The concatenated content of all specified buffers
-local function build_document(buffer_numbers)
+local function setup_document(buffer_numbers)
   local contents = {}
   for _, bufnr in ipairs(buffer_numbers) do
     if vim.api.nvim_buf_is_valid(bufnr) then
@@ -58,7 +58,12 @@ local function build_document(buffer_numbers)
       table.insert(contents, formatted_content)
     end
   end
-  return table.concat(contents, "\n\n")
+  if #contents > 0 then
+    local docs = table.concat(contents, "\n\n")
+    return "<document>\n" .. docs.. "\n</document>\n\n"
+  else
+    return ""
+  end
 end
 
 local function get_prefix_block_suffix(start_line, end_line)
@@ -125,7 +130,6 @@ end
 --   - rewrite_section: nil (TODO)
 --   - is_truncated: nil (TODO)
 local function build_inline_context(user_prompt, language_name, is_insert, start_line, end_line)
-  -- TODO: rewrite section
   -- Get the current cursor line number
   local cur_line = vim.fn.line(".")
 
@@ -143,14 +147,70 @@ local function build_inline_context(user_prompt, language_name, is_insert, start
     user_prompt = user_prompt,
     language_name = language_name,
     content_type = content_type,
-    is_insert = is_insert, -- TODO: assist inline
-    rewrite_section = nil, -- TODO: Rewrite section
+    is_insert = is_insert,
+    rewrite_section = nil,
     is_truncated = nil,    -- TODO: The code length could be larger than the context
   }
   return result
 end
 
--- TODO: How to implement the feature: `apply the change` in zed ai?
+local function get_diagnostics_info(bufnr)
+    local diagnostics = vim.diagnostic.get(bufnr)
+    local formatted_diagnostics = {"Diagnostics:"}
+
+    for _, diag in ipairs(diagnostics) do
+        local severity = ({
+            [vim.diagnostic.severity.ERROR] = "ERROR",
+            [vim.diagnostic.severity.WARN] = "WARNING",
+            [vim.diagnostic.severity.INFO] = "INFO",
+            [vim.diagnostic.severity.HINT] = "HINT",
+        })[diag.severity]
+
+        local line = string.format(
+            "[%s] Line %d, Column %d: %s",
+            severity,
+            diag.lnum + 1,  -- Convert to 1-based line number
+            diag.col + 1,   -- Convert to 1-based column number
+            diag.message
+        )
+        table.insert(formatted_diagnostics, line)
+
+        if diag.source then
+            table.insert(formatted_diagnostics, string.format("[%s] %s", diag.source, (diag.code or "")))
+        end
+
+        table.insert(formatted_diagnostics, "")  -- Add an empty line for readability
+    end
+
+    if #diagnostics > 0 then
+      return table.concat(formatted_diagnostics, "\n")
+    else
+      return ""
+    end
+end
+
+local function get_all_diagnostics_info(buffers)
+    if #buffers == 0 then
+        return ""
+    end
+
+    local all_diagnostics = {}
+
+    for _, bufnr in ipairs(buffers) do
+        local diagnostics_info = get_diagnostics_info(bufnr)
+        if diagnostics_info ~= "" then
+            table.insert(all_diagnostics, diagnostics_info)
+        end
+    end
+
+    if #all_diagnostics > 0 then
+        return "\n<diagnostics>\n" .. table.concat(all_diagnostics, "\n") .. "\n</diagnostics>\n\n"
+    else
+        return ""
+    end
+end
+
+--  How to implement the feature: `apply the change` in zed ai?
 -- Zed caches all the messages in the assistant panel.
 -- Zed builds prompt for the current buffer.
 -- Then append the prompt in the end of messages.
@@ -164,24 +224,25 @@ end
 M.parse_user_message = function(lines)
   local buffers = {}
   local user_prompt_lines = {}
+  local diagnostic_buffers = {}
   -- parse slash commands
   for _, line in ipairs(lines) do
     local buf_match = line:match("^/buf%s+(%d+)")
+    local diagnostics_match = line:match("^/diagnostics (%d+)")
     if buf_match then
       table.insert(buffers, tonumber(buf_match))
+    elseif diagnostics_match then
+      table.insert(diagnostic_buffers, tonumber(diagnostics_match))
     else
       table.insert(user_prompt_lines, line)
     end
   end
 
   local user_prompt = table.concat(user_prompt_lines, "\n"):gsub("^%s*(.-)%s*$", "%1")
-  local prompt
-  if #buffers > 0 then
-    local document = build_document(buffers)
-    prompt = "<document>\n" .. document .. "\n</document>\n\n" .. user_prompt
-  else
-    prompt = user_prompt
-  end
+  local prompt = ""
+  local document = setup_document(buffers)
+  local diagnostics_info = get_all_diagnostics_info(diagnostic_buffers)
+  prompt =  document .. diagnostics_info .. user_prompt
   return prompt
 end
 
