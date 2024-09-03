@@ -54,14 +54,17 @@ end
 
 function Inline:on_complete(is_insert)
   if not is_insert then
-    -- store old code block
-    local old = {}
-    for i = self.state.start_line, self.state.end_line do
-      table.insert(old, vim.api.nvim_buf_get_lines(0, i - 1, i, true)[1])
-    end
-    self.state.original_code_block = old
-    -- delete lines for rewriting section
-    vim.api.nvim_buf_set_lines(0, self.state.start_line - 1, self.state.end_line, false, {""})
+    -- Schedule the buffer modification to run after the loop callback
+    vim.schedule(function()
+      -- Store old code block
+      local old = {}
+      for i = self.state.start_line, self.state.end_line do
+        table.insert(old, vim.api.nvim_buf_get_lines(0, i - 1, i, true)[1])
+      end
+      self.state.original_code_block = old
+      -- Delete lines for rewriting section
+      vim.api.nvim_buf_set_lines(0, self.state.start_line - 1, self.state.end_line, false, {""})
+    end)
   end
   self:insert_lines()
 end
@@ -71,7 +74,7 @@ function Inline:start(prompt, is_insert)
   -- TODO: Cannot just get the last message from `asssitance`.
   -- Provider like anthropic requires first role must be `user`.
   -- Maybe just take the last 2 messages?
-  local messages = ChatDialog.get_messages()
+  local messages = ChatDialog.get_messages() or {}
   -- remove the last message if its role is user
   if #messages > 0 and messages[#messages].role == ChatDialog.ROLE_USER then
     table.remove(messages)
