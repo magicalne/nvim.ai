@@ -21,6 +21,8 @@ M.setup_keymaps = function()
   -- Global keymaps
   local keymaps = Config.get('keymaps')
   vim.keymap.set({ "n", "v" }, keymaps.toggle, ChatDialog.toggle, { noremap = true, silent = true })
+  vim.keymap.set('n', keymaps.previous_chat, ChatDialog.get_previous_chat, { noremap = true, silent = true })
+  vim.keymap.set('n', keymaps.next_chat, ChatDialog.get_next_chat, { noremap = true, silent = true })
   vim.keymap.set({ "n", "v" }, keymaps.inline_assist, Assistant.inline, { noremap = true, silent = true })
   -- Buffer-specific keymaps for ChatDialog
   local function set_chat_dialog_keymaps()

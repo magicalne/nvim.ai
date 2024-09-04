@@ -167,13 +167,79 @@ local function find_most_recent_chat_file()
   return files[1] -- Return the most recent file, or nil if no files found
 end
 
+function ChatDialog.get_chat_histories()
+  local project_name = get_project_name()
+  local save_dir = config.config.saved_chats_dir .. '/' .. project_name
+
+  local files = vim.fn.glob(save_dir .. '/chat_*.md', 0, 1)
+  table.sort(files, function(a, b) return a > b end)  -- Sort in descending order
+
+  return files
+end
+
+function ChatDialog.get_previous_chat()
+  local histories = ChatDialog.get_chat_histories()
+  if #histories == 0 then
+    print("No chat histories found.")
+    return
+  end
+
+  local current_file = ChatDialog.state.last_saved_file or histories[1]
+  local current_index = vim.fn.index(histories, current_file)
+
+  if current_index == -1 or current_index == #histories - 1 then
+    print("No previous chat file available.")
+    return
+  end
+
+  local previous_file = histories[current_index + 2]
+  ChatDialog.load_chat_file(previous_file)
+end
+
+function ChatDialog.get_next_chat()
+  local histories = ChatDialog.get_chat_histories()
+  if #histories == 0 then
+    print("No chat histories found.")
+    return
+  end
+
+  local current_file = ChatDialog.state.last_saved_file or histories[1]
+  local current_index = vim.fn.index(histories, current_file)
+
+  if current_index == -1 or current_index == 0 then
+    print("No next chat file available.")
+    return
+  end
+
+  local next_file = histories[current_index]
+  ChatDialog.load_chat_file(next_file)
+end
+
+-- Helper function to load a chat file
+function ChatDialog.load_chat_file(file_path)
+  if not file_path or not vim.fn.filereadable(file_path) then
+    print("Invalid or unreadable file: " .. tostring(file_path))
+    return
+  end
+
+  ChatDialog.state.last_saved_file = file_path
+  if ChatDialog.state.buf and api.nvim_buf_is_valid(ChatDialog.state.buf) then
+    api.nvim_buf_set_lines(ChatDialog.state.buf, 0, -1, false, {})
+    local lines = vim.fn.readfile(file_path)
+    api.nvim_buf_set_lines(ChatDialog.state.buf, 0, -1, false, lines)
+    print("Loaded chat file: " .. file_path)
+  else
+    print("Chat buffer is not valid. Please open the chat dialog first.")
+  end
+end
+
 function ChatDialog.open()
   if ChatDialog.state.win and api.nvim_win_is_valid(ChatDialog.state.win) then
     api.nvim_set_current_win(ChatDialog.state.win)
     return
   end
 
-  local file_to_load = ChatDialog.state.last_saved_file or find_most_recent_chat_file()
+  local file_to_load = ChatDialog.state.last_saved_file or ChatDialog.get_chat_histories()[1]
 
   if file_to_load then
     ChatDialog.state.buf = vim.fn.bufadd(file_to_load)
@@ -213,11 +279,11 @@ function ChatDialog.toggle()
 end
 
 function ChatDialog.on_complete(t)
-  --api.nvim_buf_set_option(ChatDialog.state.buf, "modifiable", true)
-  vim.schedule(function()
-    ChatDialog.append_text("\n\n/you:\n")
+  vim.defer_fn(function()
+    api.nvim_buf_set_option(ChatDialog.state.buf, "modifiable", true)
+    api.nvim_buf_set_lines(ChatDialog.state.buf, -2, -1, false, { "", "/you:", "" })
     ChatDialog.save_file()
-  end)
+  end, 10) -- 10ms delay
 end
 
 function ChatDialog.append_text(text)
@@ -233,6 +299,7 @@ function ChatDialog.append_text(text)
     -- Split the new text into lines
     local new_lines = vim.split(text, "\n", { plain = true })
 
+    api.nvim_buf_set_option(ChatDialog.state.buf, "modifiable", true)
     -- Append the first line to the last line of the buffer
     local updated_last_line = last_line_content .. new_lines[1]
     api.nvim_buf_set_lines(ChatDialog.state.buf, -2, -1, false, { updated_last_line })
@@ -241,6 +308,7 @@ function ChatDialog.append_text(text)
     if #new_lines > 1 then
       api.nvim_buf_set_lines(ChatDialog.state.buf, -1, -1, false, { unpack(new_lines, 2) })
     end
+    api.nvim_buf_set_option(ChatDialog.state.buf, "modifiable", false)
 
     -- Scroll to bottom
     if ChatDialog.state.win and api.nvim_win_is_valid(ChatDialog.state.win) then
@@ -254,7 +322,6 @@ end
 function ChatDialog.clear()
   if not (ChatDialog.state.buf and api.nvim_buf_is_valid(ChatDialog.state.buf)) then return end
 
-  api.nvim_buf_set_option(ChatDialog.state.buf, "modifiable", true)
   api.nvim_buf_set_lines(ChatDialog.state.buf, 0, -1, false, {})
   ChatDialog.state.last_saved_file = nil
 end
