@@ -12,6 +12,24 @@ return {
     },
   },
   {
+    cmd = "NvimAIPrevousChat",
+    callback = function()
+      ChatDialog.get_previous_chat()
+    end,
+    opts = {
+      desc = "Get previous chat from history",
+    },
+  },
+  {
+    cmd = "NvimAINextChat",
+    callback = function()
+      ChatDialog.get_next_chat()
+    end,
+    opts = {
+      desc = "Get next chat from history",
+    },
+  },
+  {
     cmd = "NvimAIInlineAssist",
     callback = function(opts)
       Assistant.inline(opts.args)

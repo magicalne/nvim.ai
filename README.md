@@ -127,6 +127,23 @@ ai.setup({
 })
 ```
 
+### OpenAI compatible API
+
+#### Local LLM like `llamacpp` and `koboldcpp`
+
+```Lua
+local ai = require('ai')
+ai.setup({
+  provider = "openai",
+  openai = {
+    ["local "] = true,
+    model = "llama3.1:70b",
+    endpoint = "http://localhost:8080",
+  }
+})
+```
+
+
 ### Integrate with cmp
 
 You may want to autocomplete commands with `cmp`:
@@ -142,6 +159,8 @@ sources = cmp.config.sources({
 
 #### Chat
 - <kbd>Leader</kbd><kbd>c</kbd> -- Toggle chat
+- <kdb>Leader</kdb><kdb>[</kdb> -- Open previous chat
+- <kdb>Leader</kdb><kdb>]</kdb> -- Open next chat
 - <kbd>q</kbd> -- Close chat
 - <kbd>Enter</kbd> -- Send message in normal mode
 - <kbd>Control</kbd><kbd>l</kbd> -- Clear chat history
