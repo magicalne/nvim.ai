@@ -7,7 +7,6 @@ local Prompts = require('ai.assistant.prompts')
 local api = vim.api
 local fn = vim.fn
 
-
 local ChatDialog = {}
 ChatDialog.ROLE_USER = "user"
 ChatDialog.ROLE_ASSISTANT = "assistant"
@@ -151,20 +150,6 @@ function ChatDialog.save_file()
   else
     print("Failed to save chat to file: " .. filename)
   end
-end
-
-local function find_most_recent_chat_file()
-  local project_name = get_project_name()
-  local save_dir = config.config.saved_chats_dir .. '/' .. project_name
-
-  local files = vim.fn.glob(save_dir .. '/chat_*.md', 0, 1)
-  table.sort(files, function(a, b) return vim.fn.getftime(a) > vim.fn.getftime(b) end)
-
-  if ChatDialog.state.last_saved_file == nil then
-    ChatDialog.state.last_saved_file = files[1]
-  end
-
-  return files[1] -- Return the most recent file, or nil if no files found
 end
 
 function ChatDialog.get_chat_histories()
@@ -394,11 +379,44 @@ function ChatDialog.last_user_request()
   end
 end
 
+function ChatDialog.setup_autocmd()
+  -- Check if cmp is available
+  local has_cmp, cmp = pcall(require, 'cmp')
+  if not has_cmp then
+    return
+  end
+  local bufnr = ChatDialog.state.buf
+
+  -- Create an autocmd that sets up the cmp source when entering the chat buffer
+  vim.api.nvim_create_autocmd("InsertEnter", {
+    once = true,
+    buffer = bufnr,
+    callback = function()
+      -- Check if the cmp source is already set up for this buffer
+      if not ChatDialog.cmp_source_setup then
+        -- Register our custom source
+        cmp.register_source('nvimai_cmp_source', require('ai.cmp_source').new())
+        -- Get the current buffer's sources
+        local sources = cmp.get_config().sources
+
+        -- Add our custom source to the beginning of the sources list
+        table.insert(sources, 1, {name = 'nvimai_cmp_source'})
+
+        -- Set up cmp for this buffer with the updated sources
+        cmp.setup.buffer({
+          sources = sources
+        })
+        -- Mark that we've set up the cmp source
+        ChatDialog.cmp_source_setup = true
+      end
+    end
+  })
+end
+
 function ChatDialog.setup()
   ChatDialog.config = vim.tbl_deep_extend("force", ChatDialog.config, config.config.ui or {})
-  -- Create user commands
-  api.nvim_create_user_command("ChatDialogToggle", ChatDialog.toggle, {})
-  api.nvim_create_user_command("ChatDialogClear", ChatDialog.clear, {})
+  ChatDialog.setup_autocmd()
+
 end
 
 return ChatDialog

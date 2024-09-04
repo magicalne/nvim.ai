@@ -2,22 +2,11 @@ local Config = require("ai.config")
 local Assistant = require('ai.assistant')
 local ChatDialog = require("ai.chat_dialog")
 local Providers = require("ai.providers")
-local CmpSource = require("ai.cmp_source")
 
 local M = {}
 
-local function setup_cmp()
-  local ok, cmp = pcall(require, 'cmp')
-  if not ok then
-    -- cmp is not installed, so we don't set it up
-    return
-  end
 
-  -- cmp is available, so we can set it up
-  cmp.register_source('nvimai_cmp_source', CmpSource.new())
-end
-
-M.setup_keymaps = function()
+local function setup_keymaps()
   -- Global keymaps
   local keymaps = Config.get('keymaps')
   vim.keymap.set({ "n", "v" }, keymaps.toggle, ChatDialog.toggle, { noremap = true, silent = true })
@@ -46,14 +35,13 @@ M.setup = function(opts)
   -- Load the plugin's configuration
   ChatDialog:setup()
   Providers.setup()
-  setup_cmp()
 
   -- create commands
   local cmds = require("ai.cmds")
   for _, cmd in ipairs(cmds) do
     vim.api.nvim_create_user_command(cmd.cmd, cmd.callback, cmd.opts)
   end
-  M.setup_keymaps()
+  setup_keymaps()
 end
 
 return M
