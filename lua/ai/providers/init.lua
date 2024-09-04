@@ -54,17 +54,16 @@ end
 ---@private
 ---@param provider Provider
 function M.refresh(provider)
-  ---@type AvanteProviderFunctor
   local p = M[Config.config.provider]
   if not p.has() then
     E.setup({ provider = p, refresh = true })
   else
-    Utils.info("Switch to provider: " .. provider, { once = true, title = "Avante" })
+    Utils.info("Switch to provider: " .. provider, { once = true, title = "nvim.ai" })
   end
-  require("avante.config").override({ provider = provider })
+  require("ai.config").override({ provider = provider })
 end
 
-local default_providers = { "openai", "claude", "azure", "deepseek", "groq", "gemini", "copilot" }
+local default_providers = { "openai", "anthropic", "deepseek", "groq", "gemini", "cohere", "hyperbolic", "mistral", "ollama" }
 
 ---@private
 M.commands = function()
@@ -73,7 +72,7 @@ M.commands = function()
     M.refresh(cmd)
   end, {
     nargs = 1,
-    desc = "avante: switch provider",
+    desc = "nvim.ai: switch provider",
     complete = function(_, line)
       if line:match("^%s*NvimAISwitchProvider %w") then
         return {}

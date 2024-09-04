@@ -127,6 +127,23 @@ ai.setup({
 })
 ```
 
+### OpenAI compatible API
+
+#### Local LLM like `llamacpp` and `koboldcpp`
+
+```Lua
+local ai = require('ai')
+ai.setup({
+  provider = "openai",
+  openai = {
+    ["local "] = true,
+    model = "llama3.1:70b",
+    endpoint = "http://localhost:8080",
+  }
+})
+```
+
+
 ### Integrate with cmp
 
 You may want to autocomplete commands with `cmp`:

@@ -35,7 +35,6 @@ M.setup_keymaps = function()
     pattern = Config.FILE_TYPE,
     callback = set_chat_dialog_keymaps
   })
-  -- automatically setup Avante filetype to markdown
   vim.treesitter.language.register("markdown", Config.FILE_TYPE)
 end
 --
