@@ -4,7 +4,18 @@
 
 ## Chat with buffers
 
-![Chat with buffers](https://github.com/user-attachments/assets/32f9b649-32af-4a0c-8c79-be3647ccc953)
+https://github.com/user-attachments/assets/5897f318-bf2c-4bd2-b4d3-51ce5b06d049
+
+## Inline Assist
+
+https://github.com/user-attachments/assets/a4eeb475-c753-4f6e-9c41-71e21e636c6c
+
+Set up context and ask LLM to generate code. Use inline assist to insert/rewrite the code.
+
+## /diagnostics
+https://github.com/user-attachments/assets/d36abc9d-a81e-4b2e-9410-e7d538a3ed7f
+
+Set up context with diagnostics from LSP.
 
 ## Features
 
