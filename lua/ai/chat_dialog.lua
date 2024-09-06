@@ -1,9 +1,9 @@
-local Providers = require('ai.providers')
-local Http = require('ai.http')
-local config = require('ai.config')
-local Utils = require('ai.utils')
-local Assist= require('ai.assistant.assist')
-local Prompts = require('ai.assistant.prompts')
+local Providers = require("ai.providers")
+local Http = require("ai.http")
+local config = require("ai.config")
+local Utils = require("ai.utils")
+local Assist = require("ai.assistant.assist")
+local Prompts = require("ai.assistant.prompts")
 local api = vim.api
 local fn = vim.fn
 
@@ -13,8 +13,8 @@ ChatDialog.ROLE_ASSISTANT = "assistant"
 
 ChatDialog.config = {
   width = 40,
-  side = 'right',
-  borderchars = { '─', '│', '─', '│', '╭', '╮', '╯', '╰' },
+  side = "right",
+  borderchars = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" },
 }
 
 ChatDialog.state = {
@@ -25,45 +25,45 @@ ChatDialog.state = {
 
 local function create_buf()
   local buf = api.nvim_create_buf(false, true)
-  api.nvim_buf_set_option(buf, 'buftype', 'nofile')
-  api.nvim_buf_set_option(buf, 'bufhidden', 'wipe')
-  api.nvim_buf_set_option(buf, 'buflisted', false)
-  api.nvim_buf_set_option(buf, 'swapfile', false)
-  api.nvim_buf_set_option(buf, 'filetype', config.FILE_TYPE)
+  api.nvim_buf_set_option(buf, "buftype", "nofile")
+  api.nvim_buf_set_option(buf, "bufhidden", "wipe")
+  api.nvim_buf_set_option(buf, "buflisted", false)
+  api.nvim_buf_set_option(buf, "swapfile", false)
+  api.nvim_buf_set_option(buf, "filetype", config.FILE_TYPE)
   return buf
 end
 
 local function get_win_config()
   local width = ChatDialog.config.width
-  local height = api.nvim_get_option('lines') - 4
-  local col = ChatDialog.config.side == 'left' and 0 or (api.nvim_get_option('columns') - width)
+  local height = api.nvim_get_option("lines") - 4
+  local col = ChatDialog.config.side == "left" and 0 or (api.nvim_get_option("columns") - width)
 
   return {
-    relative = 'editor',
+    relative = "editor",
     width = width,
     height = height,
     row = 0,
     col = col,
-    style = 'minimal',
+    style = "minimal",
     border = ChatDialog.config.borderchars,
   }
 end
 
 local function get_project_name()
   local cwd = vim.fn.getcwd()
-  return vim.fn.fnamemodify(cwd, ':t')
+  return vim.fn.fnamemodify(cwd, ":t")
 end
 
 local function generate_chat_filename()
   local project_name = get_project_name()
-  local save_dir = config.config.saved_chats_dir .. '/' .. project_name
+  local save_dir = config.config.saved_chats_dir .. "/" .. project_name
 
   -- Create the directory if it doesn't exist
-  vim.fn.mkdir(save_dir, 'p')
+  vim.fn.mkdir(save_dir, "p")
 
   -- Generate a unique filename based on timestamp
   local timestamp = os.date("%Y%m%d_%H%M%S")
-  local filename = save_dir .. '/chat_' .. timestamp .. '.md'
+  local filename = save_dir .. "/chat_" .. timestamp .. ".md"
   return filename
 end
 
@@ -77,7 +77,7 @@ function parse_messages(lines)
       if current_role then
         table.insert(result, {
           role = current_role,
-          content = table.concat(current_content, "\n")
+          content = table.concat(current_content, "\n"),
         })
         current_content = {}
       end
@@ -94,29 +94,27 @@ function parse_messages(lines)
 
         table.insert(result, {
           role = current_role,
-          content = content
+          content = content,
         })
         current_content = {}
       end
       current_role = ChatDialog.ROLE_ASSISTANT
     else
-      if current_role then
-        table.insert(current_content, line)
-      end
+      if current_role then table.insert(current_content, line) end
     end
   end
 
   if current_role and #current_content > 0 then
     local content
-        if current_role == ChatDialog.ROLE_USER then
-          -- parse slash commands in user prompt
-          content = Assist.parse_user_message(current_content)
-        else
-        content = table.concat(current_content, "\n")
-        end
+    if current_role == ChatDialog.ROLE_USER then
+      -- parse slash commands in user prompt
+      content = Assist.parse_user_message(current_content)
+    else
+      content = table.concat(current_content, "\n")
+    end
     table.insert(result, {
       role = current_role,
-      content = content
+      content = content,
     })
   end
 
@@ -133,10 +131,10 @@ function ChatDialog.save_file()
 
   -- Get buffer contents
   local lines = api.nvim_buf_get_lines(ChatDialog.state.buf, 0, -1, false)
-  local content = table.concat(lines, '\n')
+  local content = table.concat(lines, "\n")
 
   -- Write to file
-  local file = io.open(filename, 'w')
+  local file = io.open(filename, "w")
   if file then
     file:write(content)
     file:close()
@@ -154,10 +152,10 @@ end
 
 function ChatDialog.get_chat_histories()
   local project_name = get_project_name()
-  local save_dir = config.config.saved_chats_dir .. '/' .. project_name
+  local save_dir = config.config.saved_chats_dir .. "/" .. project_name
 
-  local files = vim.fn.glob(save_dir .. '/chat_*.md', 0, 1)
-  table.sort(files, function(a, b) return a > b end)  -- Sort in descending order
+  local files = vim.fn.glob(save_dir .. "/chat_*.md", 0, 1)
+  table.sort(files, function(a, b) return a > b end) -- Sort in descending order
 
   return files
 end
@@ -229,11 +227,11 @@ function ChatDialog.open()
   if file_to_load then
     ChatDialog.state.buf = vim.fn.bufadd(file_to_load)
     vim.fn.bufload(ChatDialog.state.buf)
-    api.nvim_buf_set_option(ChatDialog.state.buf, 'buftype', 'nofile')
-    api.nvim_buf_set_option(ChatDialog.state.buf, 'bufhidden', 'wipe')
-    api.nvim_buf_set_option(ChatDialog.state.buf, 'buflisted', false)
-    api.nvim_buf_set_option(ChatDialog.state.buf, 'swapfile', false)
-    api.nvim_buf_set_option(ChatDialog.state.buf, 'filetype', config.FILE_TYPE)
+    api.nvim_buf_set_option(ChatDialog.state.buf, "buftype", "nofile")
+    api.nvim_buf_set_option(ChatDialog.state.buf, "bufhidden", "wipe")
+    api.nvim_buf_set_option(ChatDialog.state.buf, "buflisted", false)
+    api.nvim_buf_set_option(ChatDialog.state.buf, "swapfile", false)
+    api.nvim_buf_set_option(ChatDialog.state.buf, "filetype", config.FILE_TYPE)
   else
     ChatDialog.state.buf = ChatDialog.state.buf or create_buf()
   end
@@ -241,10 +239,9 @@ function ChatDialog.open()
   ChatDialog.state.win = api.nvim_open_win(ChatDialog.state.buf, true, win_config)
 
   -- Set window options
-  api.nvim_win_set_option(ChatDialog.state.win, 'wrap', true)
-  api.nvim_win_set_option(ChatDialog.state.win, 'linebreak', true) -- Wrap at word boundaries
-  api.nvim_win_set_option(ChatDialog.state.win, 'cursorline', true)
-
+  api.nvim_win_set_option(ChatDialog.state.win, "wrap", true)
+  api.nvim_win_set_option(ChatDialog.state.win, "linebreak", true) -- Wrap at word boundaries
+  api.nvim_win_set_option(ChatDialog.state.win, "cursorline", true)
 end
 
 function ChatDialog.close()
@@ -266,13 +263,17 @@ end
 function ChatDialog.on_complete(t)
   vim.defer_fn(function()
     api.nvim_buf_set_option(ChatDialog.state.buf, "modifiable", true)
-    api.nvim_buf_set_lines(ChatDialog.state.buf, -2, -1, false, { "", "/you:", "" })
+    api.nvim_buf_set_lines(ChatDialog.state.buf, -1, -1, false, { "", "/you:", "" })
     ChatDialog.save_file()
   end, 10) -- 10ms delay
 end
 
 function ChatDialog.append_text(text)
-  if not ChatDialog.state.buf or not pcall(vim.api.nvim_buf_is_loaded, ChatDialog.state.buf) or not pcall(vim.api.nvim_buf_get_option, ChatDialog.state.buf, 'buflisted') then
+  if
+    not ChatDialog.state.buf
+    or not pcall(vim.api.nvim_buf_is_loaded, ChatDialog.state.buf)
+    or not pcall(vim.api.nvim_buf_get_option, ChatDialog.state.buf, "buflisted")
+  then
     return
   end
 
@@ -290,9 +291,7 @@ function ChatDialog.append_text(text)
     api.nvim_buf_set_lines(ChatDialog.state.buf, -2, -1, false, { updated_last_line })
 
     -- Append the rest of the lines, if any
-    if #new_lines > 1 then
-      api.nvim_buf_set_lines(ChatDialog.state.buf, -1, -1, false, { unpack(new_lines, 2) })
-    end
+    if #new_lines > 1 then api.nvim_buf_set_lines(ChatDialog.state.buf, -1, -1, false, { unpack(new_lines, 2) }) end
     api.nvim_buf_set_option(ChatDialog.state.buf, "modifiable", false)
 
     -- Scroll to bottom
@@ -328,9 +327,7 @@ function ChatDialog.get_system_prompt()
 
   local lines = api.nvim_buf_get_lines(ChatDialog.state.buf, 0, -1, false)
   for _, line in ipairs(lines) do
-    if line:match("^/system%s(.+)") then
-      return line:match("^/system%s(.+)")
-    end
+    if line:match("^/system%s(.+)") then return line:match("^/system%s(.+)") end
   end
   return nil
 end
@@ -347,9 +344,7 @@ function ChatDialog.get_last_assist_message()
 
   for i = #messages, 1, -1 do
     local message = messages[i]
-    if message.role == ChatDialog.ROLE_ASSISTANT then
-      return message
-    end
+    if message.role == ChatDialog.ROLE_ASSISTANT then return message end
   end
 
   return nil
@@ -381,10 +376,8 @@ end
 
 function ChatDialog.setup_autocmd()
   -- Check if cmp is available
-  local has_cmp, cmp = pcall(require, 'cmp')
-  if not has_cmp then
-    return
-  end
+  local has_cmp, cmp = pcall(require, "cmp")
+  if not has_cmp then return end
   local bufnr = ChatDialog.state.buf
 
   -- Create an autocmd that sets up the cmp source when entering the chat buffer
@@ -395,28 +388,27 @@ function ChatDialog.setup_autocmd()
       -- Check if the cmp source is already set up for this buffer
       if not ChatDialog.cmp_source_setup then
         -- Register our custom source
-        cmp.register_source('nvimai_cmp_source', require('ai.cmp_source').new())
+        cmp.register_source("nvimai_cmp_source", require("ai.cmp_source").new())
         -- Get the current buffer's sources
         local sources = cmp.get_config().sources
 
         -- Add our custom source to the beginning of the sources list
-        table.insert(sources, 1, {name = 'nvimai_cmp_source'})
+        table.insert(sources, 1, { name = "nvimai_cmp_source" })
 
         -- Set up cmp for this buffer with the updated sources
         cmp.setup.buffer({
-          sources = sources
+          sources = sources,
         })
         -- Mark that we've set up the cmp source
         ChatDialog.cmp_source_setup = true
       end
-    end
+    end,
   })
 end
 
 function ChatDialog.setup()
   ChatDialog.config = vim.tbl_deep_extend("force", ChatDialog.config, config.config.ui or {})
   ChatDialog.setup_autocmd()
-
 end
 
 return ChatDialog

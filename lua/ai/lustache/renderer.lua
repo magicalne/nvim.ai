@@ -1,32 +1,29 @@
-local Scanner                                                                                                            = require(
-"ai.lustache.scanner")
-local Context                                                                                                            = require(
-"ai.lustache.context")
+local Scanner = require("ai.lustache.scanner")
+local Context = require("ai.lustache.context")
 
-local error, ipairs, pairs, setmetatable, tostring, type                                                                 =
-    error, ipairs, pairs, setmetatable, tostring, type
+local error, ipairs, pairs, setmetatable, tostring, type = error, ipairs, pairs, setmetatable, tostring, type
 local math_floor, math_max, string_find, string_gsub, string_split, string_sub, table_concat, table_insert, table_remove =
-    math.floor, math.max, string.find, string.gsub, string.split, string.sub, table.concat, table.insert, table.remove
+  math.floor, math.max, string.find, string.gsub, string.split, string.sub, table.concat, table.insert, table.remove
 
-local patterns                                                                                                           = {
+local patterns = {
   white = "%s*",
   space = "%s+",
   nonSpace = "%S",
   eq = "%s*=",
   curly = "%s*}",
-  tag = "[#\\^/>{&=!?]"
+  tag = "[#\\^/>{&=!?]",
 }
 
-local html_escape_characters                                                                                             = {
+local html_escape_characters = {
   ["&"] = "&amp;",
   ["<"] = "&lt;",
   [">"] = "&gt;",
   ['"'] = "&quot;",
   ["'"] = "&#39;",
-  ["/"] = "&#x2F;"
+  ["/"] = "&#x2F;",
 }
 
-local block_tags                                                                                                         = {
+local block_tags = {
   ["#"] = true,
   ["^"] = true,
   ["?"] = true,
@@ -36,9 +33,7 @@ local function is_array(array)
   if type(array) ~= "table" then return false end
   local max, n = 0, 0
   for k, _ in pairs(array) do
-    if not (type(k) == "number" and k > 0 and math_floor(k) == k) then
-      return false
-    end
+    if not (type(k) == "number" and k > 0 and math_floor(k) == k) then return false end
     max = math_max(max, k)
     n = n + 1
   end
@@ -65,20 +60,14 @@ local function compile_tokens(tokens, originalTemplate)
     local token, section
     for i, token in ipairs(tokens) do
       local t = token.type
-      buf[#buf + 1] =
-          t == "?" and rnd:_conditional(
-            token, ctx, subrender(i, token.tokens)
-          ) or
-          t == "#" and rnd:_section(
-            token, ctx, subrender(i, token.tokens), originalTemplate
-          ) or
-          t == "^" and rnd:_inverted(
-            token.value, ctx, subrender(i, token.tokens)
-          ) or
-          t == ">" and rnd:_partial(token.value, ctx, originalTemplate) or
-          (t == "{" or t == "&") and rnd:_name(token.value, ctx, false) or
-          t == "name" and rnd:_name(token.value, ctx, true) or
-          t == "text" and token.value or ""
+      buf[#buf + 1] = t == "?" and rnd:_conditional(token, ctx, subrender(i, token.tokens))
+        or t == "#" and rnd:_section(token, ctx, subrender(i, token.tokens), originalTemplate)
+        or t == "^" and rnd:_inverted(token.value, ctx, subrender(i, token.tokens))
+        or t == ">" and rnd:_partial(token.value, ctx, originalTemplate)
+        or (t == "{" or t == "&") and rnd:_name(token.value, ctx, false)
+        or t == "name" and rnd:_name(token.value, ctx, true)
+        or t == "text" and token.value
+        or ""
     end
     return table_concat(buf)
   end
@@ -105,16 +94,12 @@ local function nest_tokens(tokens)
       collector[#collector + 1] = token
       collector = token.tokens
     elseif token.type == "/" then
-      if #sections == 0 then
-        error("Unopened section: " .. token.value)
-      end
+      if #sections == 0 then error("Unopened section: " .. token.value) end
 
       -- Make sure there are no open sections when we're done
       section = table_remove(sections, #sections)
 
-      if not section.value == token.value then
-        error("Unclosed section: " .. section.value)
-      end
+      if not section.value == token.value then error("Unclosed section: " .. section.value) end
 
       section.closingTagIndex = token.startIndex
 
@@ -130,9 +115,7 @@ local function nest_tokens(tokens)
 
   section = table_remove(sections, #sections)
 
-  if section then
-    error("Unclosed section: " .. section.value)
-  end
+  if section then error("Unclosed section: " .. section.value) end
 
   return tree
 end
@@ -144,14 +127,13 @@ local function squash_tokens(tokens)
   local txtStartIndex, txtEndIndex
   for _, v in ipairs(tokens) do
     if v.type == "text" then
-      if #txt == 0 then
-        txtStartIndex = v.startIndex
-      end
+      if #txt == 0 then txtStartIndex = v.startIndex end
       txt[#txt + 1] = v.value
       txtEndIndex = v.endIndex
     else
       if #txt > 0 then
-        out[#out + 1] = { type = "text", value = table_concat(txt), startIndex = txtStartIndex, endIndex = txtEndIndex }
+        out[#out + 1] =
+          { type = "text", value = table_concat(txt), startIndex = txtStartIndex, endIndex = txtEndIndex }
         txt = {}
       end
       out[#out + 1] = v
@@ -177,21 +159,15 @@ end
 
 function renderer:compile(tokens, tags, originalTemplate)
   tags = tags or self.tags
-  if type(tokens) == "string" then
-    tokens = self:parse(tokens, tags)
-  end
+  if type(tokens) == "string" then tokens = self:parse(tokens, tags) end
 
   local fn = compile_tokens(tokens, originalTemplate)
 
-  return function(view)
-    return fn(make_context(view), self)
-  end
+  return function(view) return fn(make_context(view), self) end
 end
 
 function renderer:render(template, view, partials)
-  if type(self) == "string" then
-    error("Call mustache:render, not mustache.render!")
-  end
+  if type(self) == "string" then error("Call mustache:render, not mustache.render!") end
 
   if partials then
     -- remember partial table
@@ -199,9 +175,7 @@ function renderer:render(template, view, partials)
     self.partials = partials
   end
 
-  if not template then
-    return ""
-  end
+  if not template then return "" end
 
   local fn = self.cache[template]
 
@@ -216,9 +190,7 @@ end
 function renderer:_conditional(token, context, callback)
   local value = context:lookup(token.value)
 
-  if value then
-    return callback(context, self)
-  end
+  if value then return callback(context, self) end
 
   return ""
 end
@@ -241,15 +213,11 @@ function renderer:_section(token, context, callback, originalTemplate)
   elseif type(value) == "function" then
     local section_text = string_sub(originalTemplate, token.endIndex + 1, token.closingTagIndex - 1)
 
-    local scoped_render = function(template)
-      return self:render(template, context)
-    end
+    local scoped_render = function(template) return self:render(template, context) end
 
     return value(section_text, scoped_render) or ""
   else
-    if value then
-      return callback(context, self)
-    end
+    if value then return callback(context, self) end
   end
 
   return ""
@@ -273,11 +241,9 @@ function renderer:_partial(name, context, originalTemplate)
   local fn = self.partial_cache[name]
 
   -- check if partial cache exists
-  if (not fn and self.partials) then
+  if not fn and self.partials then
     local partial = self.partials[name]
-    if (not partial) then
-      return ""
-    end
+    if not partial then return "" end
 
     -- compile partial and store result in cache
     fn = self:compile(partial, nil, partial)
@@ -289,16 +255,12 @@ end
 function renderer:_name(name, context, escape)
   local value = context:lookup(name)
 
-  if type(value) == "function" then
-    value = value(context.view)
-  end
+  if type(value) == "function" then value = value(context.view) end
 
   local str = value == nil and "" or value
   str = tostring(str)
 
-  if escape then
-    return string_gsub(str, '[&<>"\'/]', function(s) return html_escape_characters[s] end)
-  end
+  if escape then return string_gsub(str, "[&<>\"'/]", function(s) return html_escape_characters[s] end) end
 
   return str
 end
@@ -311,9 +273,9 @@ function renderer:parse(template, tags)
   tags = tags or self.tags
   local tag_patterns = escape_tags(tags)
   local scanner = Scanner:new(template)
-  local tokens = {}       -- token buffer
-  local spaces = {}       -- indices of whitespace tokens on the current line
-  local has_tag = false   -- is there a {{tag} on the current line?
+  local tokens = {} -- token buffer
+  local spaces = {} -- indices of whitespace tokens on the current line
+  local has_tag = false -- is there a {{tag} on the current line?
   local non_space = false -- is there a non-space char on the current line?
 
   -- Strips all whitespace tokens array for the current line if there was
@@ -349,15 +311,11 @@ function renderer:parse(template, tags)
 
         tokens[#tokens + 1] = { type = "text", value = chr, startIndex = start, endIndex = start }
         start = start + 1
-        if chr == "\n" then
-          strip_space()
-        end
+        if chr == "\n" then strip_space() end
       end
     end
 
-    if not scanner:scan(tag_patterns[1]) then
-      break
-    end
+    if not scanner:scan(tag_patterns[1]) then break end
 
     has_tag = true
     type = scanner:scan(patterns.tag) or "name"
@@ -397,9 +355,9 @@ end
 
 function renderer:new()
   local out = {
-    cache         = {},
+    cache = {},
     partial_cache = {},
-    tags          = { "{{", "}}" }
+    tags = { "{{", "}}" },
   }
   return setmetatable(out, { __index = self })
 end

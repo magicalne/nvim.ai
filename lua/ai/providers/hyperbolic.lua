@@ -6,21 +6,17 @@ local M = {}
 
 M.API_KEY = "HYPERBOLIC_API_KEY"
 
-function M.has()
-  return vim.fn.executable("curl") == 1 and os.getenv(M.API_KEY) ~= nil
-end
+function M.has() return vim.fn.executable("curl") == 1 and os.getenv(M.API_KEY) ~= nil end
 
 function M.parse_response(data_stream, _, on_chunk)
-  if data_stream == nil or data_stream == "" then
-    return
-  end
+  if data_stream == nil or data_stream == "" then return end
   local data_match = data_stream:match("^data: (.+)$")
-  if data_match == '[DONE]' then
+  if data_match == "[DONE]" then
     --opts.on_complete(nil)
   else
     local json = vim.json.decode(data_match)
     if json.choices and #json.choices > 0 then
-      local content = json.choices[1].delta.content or ''
+      local content = json.choices[1].delta.content or ""
       on_chunk(content)
     end
   end
@@ -37,7 +33,7 @@ function M.parse_curl_args(provider, request)
   local messages = {
     {
       role = "system",
-      content = request.system_prompt
+      content = request.system_prompt,
     },
   }
   for _, message in ipairs(request.messages) do

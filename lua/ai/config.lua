@@ -17,9 +17,9 @@ M.defaults = {
   debug = true,
   -- Chat Dialog UI configuration
   ui = {
-    width = 80,     -- Width of the chat dialog window
-    side = 'right', -- Side of the editor to open the dialog ('left' or 'right')
-    borderchars = { '╭', '─', '╮', '│', '╯', '─', '╰', '│', },
+    width = 80, -- Width of the chat dialog window
+    side = "right", -- Side of the editor to open the dialog ('left' or 'right')
+    borderchars = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" },
     highlight = {
       border = "FloatBorder", -- Highlight group for the border
       background = "NormalFloat", -- Highlight group for the background
@@ -80,7 +80,7 @@ M.defaults = {
     max_tokens = 4096,
     ["local"] = false,
   },
-  hyperbolic= {
+  hyperbolic = {
     endpoint = "https://api.hyperbolic.xyz",
     model = "meta-llama/Meta-Llama-3.1-70B-Instruct", -- or meta-llama/Meta-Llama-3.1-405B
     temperature = 0,
@@ -108,19 +108,19 @@ M.defaults = {
 
   -- Keymaps
   keymaps = {
-    toggle = "<leader>c",        -- Toggle chat dialog
-    send = "<CR>",               -- Send message in normal mode
-    close = "q",                 -- Close chat dialog
-    clear = "<C-l>",             -- Clear chat history
+    toggle = "<leader>c", -- Toggle chat dialog
+    send = "<CR>", -- Send message in normal mode
+    close = "q", -- Close chat dialog
+    clear = "<C-l>", -- Clear chat history
     previous_chat = "<leader>[", -- Open previous chat from history
-    next_chat = "<leader>]",     -- Open next chat from history
+    next_chat = "<leader>]", -- Open next chat from history
     inline_assist = "<leader>i", -- Run InlineAssist command with prompt
   },
 
   -- Behavior
   behavior = {
-    auto_open = true,                     -- Automatically open dialog when sending a message
-    save_history = true,                  -- Save chat history between sessions
+    auto_open = true, -- Automatically open dialog when sending a message
+    save_history = true, -- Save chat history between sessions
     history_dir = vim.fn.stdpath("data"), -- Path to save chat history
   },
 
@@ -136,9 +136,7 @@ M.defaults = {
   },
 }
 
-M.has_provider = function(provider)
-  return M.config[provider] ~= nil or M.vendors[provider] ~= nil
-end
+M.has_provider = function(provider) return M.config[provider] ~= nil or M.vendors[provider] ~= nil end
 
 M.get_provider = function(provider)
   if M.config[provider] ~= nil then
@@ -155,7 +153,7 @@ function M.setup(user_config)
   M.config = vim.tbl_deep_extend("force", M.defaults, user_config or {})
 
   -- Validate configuration
-  assert(M.config.ui.side == 'left' or M.config.ui.side == 'right', "UI side must be 'left' or 'right'")
+  assert(M.config.ui.side == "left" or M.config.ui.side == "right", "UI side must be 'left' or 'right'")
   assert(type(M.config.ui.width) == "number", "UI width must be a number")
 
   -- Set up API key
@@ -166,8 +164,6 @@ function M.setup(user_config)
   -- end
 end
 
-function M.get(what)
-  return M.config[what]
-end
+function M.get(what) return M.config[what] end
 
 return M
