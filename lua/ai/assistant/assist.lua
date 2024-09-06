@@ -10,26 +10,20 @@ M = {}
 local function get_buffer_filetype()
   local bufnr = vim.api.nvim_get_current_buf()
   -- Ensure the buffer number is valid
-  if not vim.api.nvim_buf_is_valid(bufnr) then
-    return nil, "Invalid buffer number"
-  end
+  if not vim.api.nvim_buf_is_valid(bufnr) then return nil, "Invalid buffer number" end
 
   -- Get the filetype of the buffer
-  local filetype = vim.api.nvim_buf_get_option(bufnr, 'filetype')
+  local filetype = vim.api.nvim_buf_get_option(bufnr, "filetype")
 
   -- If filetype is an empty string, it might mean it's not set
   if filetype == "" then
     -- Try to get the filetype from the buffer name
     local bufname = vim.api.nvim_buf_get_name(bufnr)
-    if bufname ~= "" then
-      filetype = vim.filetype.match({ filename = bufname })
-    end
+    if bufname ~= "" then filetype = vim.filetype.match({ filename = bufname }) end
   end
 
   -- If still empty, return "unknown"
-  if filetype == "" then
-    filetype = nil
-  end
+  if filetype == "" then filetype = nil end
 
   return filetype
 end
@@ -46,7 +40,7 @@ local function setup_document(buffer_numbers)
       local filename = vim.fn.fnamemodify(full_path, ":t")
 
       -- get the file type, or empty string if not available
-      local filetype = vim.api.nvim_buf_get_option(bufnr, 'filetype') or ''
+      local filetype = vim.api.nvim_buf_get_option(bufnr, "filetype") or ""
 
       -- get buffer content
       local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
@@ -60,7 +54,7 @@ local function setup_document(buffer_numbers)
   end
   if #contents > 0 then
     local docs = table.concat(contents, "\n\n")
-    return "<document>\n" .. docs.. "\n</document>\n\n"
+    return "<document>\n" .. docs .. "\n</document>\n\n"
   else
     return ""
   end
@@ -104,7 +98,7 @@ local function build_inline_document(is_insert, start_line, end_line)
     return table.concat({
       prefix,
       "<insert_here></insert_here>",
-      suffix
+      suffix,
     }, "\n\n")
   else
     -- TODO: rewrite section
@@ -113,7 +107,7 @@ local function build_inline_document(is_insert, start_line, end_line)
       "<rewrite_this>",
       block,
       "</rewrite_this>",
-      suffix
+      suffix,
     }, "\n\n")
   end
 end
@@ -135,12 +129,12 @@ local function build_inline_context(user_prompt, language_name, is_insert, start
 
   local document = build_inline_document(is_insert, start_line, end_line)
 
-  if language_name == nil then
-    language_name = get_buffer_filetype()
-  end
+  if language_name == nil then language_name = get_buffer_filetype() end
 
-  local content_type = language_name == nil or language_name == "text" or language_name == "markdown" and "text" or
-      "code"
+  local content_type = language_name == nil
+    or language_name == "text"
+    or language_name == "markdown" and "text"
+    or "code"
 
   local result = {
     document_content = document,
@@ -149,65 +143,61 @@ local function build_inline_context(user_prompt, language_name, is_insert, start
     content_type = content_type,
     is_insert = is_insert,
     rewrite_section = nil,
-    is_truncated = nil,    -- TODO: The code length could be larger than the context
+    is_truncated = nil, -- TODO: The code length could be larger than the context
   }
   return result
 end
 
 local function get_diagnostics_info(bufnr)
-    local diagnostics = vim.diagnostic.get(bufnr)
-    local formatted_diagnostics = {"Diagnostics:"}
+  local diagnostics = vim.diagnostic.get(bufnr)
+  local formatted_diagnostics = { "Diagnostics:" }
 
-    for _, diag in ipairs(diagnostics) do
-        local severity = ({
-            [vim.diagnostic.severity.ERROR] = "ERROR",
-            [vim.diagnostic.severity.WARN] = "WARNING",
-            [vim.diagnostic.severity.INFO] = "INFO",
-            [vim.diagnostic.severity.HINT] = "HINT",
-        })[diag.severity]
+  for _, diag in ipairs(diagnostics) do
+    local severity = ({
+      [vim.diagnostic.severity.ERROR] = "ERROR",
+      [vim.diagnostic.severity.WARN] = "WARNING",
+      [vim.diagnostic.severity.INFO] = "INFO",
+      [vim.diagnostic.severity.HINT] = "HINT",
+    })[diag.severity]
 
-        local line = string.format(
-            "[%s] Line %d, Column %d: %s",
-            severity,
-            diag.lnum + 1,  -- Convert to 1-based line number
-            diag.col + 1,   -- Convert to 1-based column number
-            diag.message
-        )
-        table.insert(formatted_diagnostics, line)
+    local line = string.format(
+      "[%s] Line %d, Column %d: %s",
+      severity,
+      diag.lnum + 1, -- Convert to 1-based line number
+      diag.col + 1, -- Convert to 1-based column number
+      diag.message
+    )
+    table.insert(formatted_diagnostics, line)
 
-        if diag.source then
-            table.insert(formatted_diagnostics, string.format("[%s] %s", diag.source, (diag.code or "")))
-        end
-
-        table.insert(formatted_diagnostics, "")  -- Add an empty line for readability
+    if diag.source then
+      table.insert(formatted_diagnostics, string.format("[%s] %s", diag.source, (diag.code or "")))
     end
 
-    if #diagnostics > 0 then
-      return table.concat(formatted_diagnostics, "\n")
-    else
-      return ""
-    end
+    table.insert(formatted_diagnostics, "") -- Add an empty line for readability
+  end
+
+  if #diagnostics > 0 then
+    return table.concat(formatted_diagnostics, "\n")
+  else
+    return ""
+  end
 end
 
 local function get_all_diagnostics_info(buffers)
-    if #buffers == 0 then
-        return ""
-    end
+  if #buffers == 0 then return "" end
 
-    local all_diagnostics = {}
+  local all_diagnostics = {}
 
-    for _, bufnr in ipairs(buffers) do
-        local diagnostics_info = get_diagnostics_info(bufnr)
-        if diagnostics_info ~= "" then
-            table.insert(all_diagnostics, diagnostics_info)
-        end
-    end
+  for _, bufnr in ipairs(buffers) do
+    local diagnostics_info = get_diagnostics_info(bufnr)
+    if diagnostics_info ~= "" then table.insert(all_diagnostics, diagnostics_info) end
+  end
 
-    if #all_diagnostics > 0 then
-        return "\n<diagnostics>\n" .. table.concat(all_diagnostics, "\n") .. "\n</diagnostics>\n\n"
-    else
-        return ""
-    end
+  if #all_diagnostics > 0 then
+    return "\n<diagnostics>\n" .. table.concat(all_diagnostics, "\n") .. "\n</diagnostics>\n\n"
+  else
+    return ""
+  end
 end
 
 --  How to implement the feature: `apply the change` in zed ai?
@@ -242,7 +232,7 @@ M.parse_user_message = function(lines)
   local prompt = ""
   local document = setup_document(buffers)
   local diagnostics_info = get_all_diagnostics_info(diagnostic_buffers)
-  prompt =  document .. diagnostics_info .. user_prompt
+  prompt = document .. diagnostics_info .. user_prompt
   return prompt
 end
 

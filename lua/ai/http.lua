@@ -42,9 +42,7 @@ M.stream = function(system_prompt, messages, on_chunk, on_complete)
         on_complete(err)
         return
       end
-      if not data then
-        return
-      end
+      if not data then return end
       vim.schedule(function()
         if Config.config[provider] ~= nil and Provider.parse_response ~= nil then
           Provider.parse_response(data, current_event_state, on_chunk)
@@ -52,7 +50,7 @@ M.stream = function(system_prompt, messages, on_chunk, on_complete)
       end)
     end,
     on_error = function(err)
-      print('http error', vim.inspect(err))
+      print("http error", vim.inspect(err))
       on_complete(err)
     end,
     callback = function(resp)
@@ -60,7 +58,6 @@ M.stream = function(system_prompt, messages, on_chunk, on_complete)
       on_complete(nil)
     end,
   })
-
 
   api.nvim_create_autocmd("User", {
     group = group,

@@ -5,30 +5,26 @@ local M = {}
 
 M.API_KEY = "OPENAI_API_KEY"
 
-M.has = function()
-  return os.getenv(M.API_KEY) and true or false
-end
+M.has = function() return os.getenv(M.API_KEY) and true or false end
 
 M.parse_message = function(opts)
   local user_prompt = opts.base_prompt
 
   return {
     { role = "system", content = opts.system_prompt },
-    { role = "user",   content = opts.base_prompt },
+    { role = "user", content = opts.base_prompt },
   }
 end
 
-M.parse_response = function (data_stream, _, on_chunk)
-  if data_stream == nil or data_stream == "" then
-    return
-  end
+M.parse_response = function(data_stream, _, on_chunk)
+  if data_stream == nil or data_stream == "" then return end
   local data_match = data_stream:match("^data: (.+)$")
-  if data_match == '[DONE]' then
+  if data_match == "[DONE]" then
     -- opts.on_complete(nil)
   else
     local json = vim.json.decode(data_match)
     if json.choices and #json.choices > 0 then
-      local content = json.choices[1].delta.content or ''
+      local content = json.choices[1].delta.content or ""
       on_chunk(content)
     end
   end
@@ -40,14 +36,12 @@ M.parse_curl_args = function(provider, request)
   local headers = {
     ["Content-Type"] = "application/json",
   }
-  if not P.env.is_local("openai") then
-    headers["Authorization"] = "Bearer " .. os.getenv(M.API_KEY)
-  end
+  if not P.env.is_local("openai") then headers["Authorization"] = "Bearer " .. os.getenv(M.API_KEY) end
 
   local messages = {
     {
       role = "system",
-      content = request.system_prompt
+      content = request.system_prompt,
     },
   }
   for _, message in ipairs(request.messages) do

@@ -5,9 +5,7 @@ local M = {}
 setmetatable(M, {
   __index = function(t, k)
     local ok, lazyutil = pcall(require, "lazy.core.util")
-    if ok and lazyutil[k] then
-      return lazyutil[k]
-    end
+    if ok and lazyutil[k] then return lazyutil[k] end
 
     ---@diagnostic disable-next-line: no-unknown
     t[k] = require("ai.utils." .. k)
@@ -18,16 +16,12 @@ setmetatable(M, {
 ---Check if a plugin is installed
 ---@param plugin string
 ---@return boolean
-M.has = function(plugin)
-  return require("lazy.core.config").plugins[plugin] ~= nil
-end
+M.has = function(plugin) return require("lazy.core.config").plugins[plugin] ~= nil end
 
 ---@param str string
 ---@param opts? {suffix?: string, prefix?: string}
 function M.trim(str, opts)
-  if not opts then
-    return str
-  end
+  if not opts then return str end
   if opts.suffix then
     return str:sub(-1) == opts.suffix and str:sub(1, -2) or str
   elseif opts.prefix then
@@ -45,16 +39,12 @@ end
 ---@param _end integer
 ---@param buf integer?
 ---@return string[]
-function M.get_buf_lines(start, _end, buf)
-  return api.nvim_buf_get_lines(buf or 0, start, _end, false)
-end
+function M.get_buf_lines(start, _end, buf) return api.nvim_buf_get_lines(buf or 0, start, _end, false) end
 
 ---Get cursor row and column as (1, 0) based
 ---@param win_id integer?
 ---@return integer, integer
-function M.get_cursor_pos(win_id)
-  return unpack(api.nvim_win_get_cursor(win_id or 0))
-end
+function M.get_cursor_pos(win_id) return unpack(api.nvim_win_get_cursor(win_id or 0)) end
 
 ---Check if the buffer is likely to have actionable conflict markers
 ---@param bufnr integer?
@@ -67,9 +57,7 @@ end
 ---@param name string?
 ---@return table<string, string>
 function M.get_hl(name)
-  if not name then
-    return {}
-  end
+  if not name then return {} end
   return api.nvim_get_hl(0, { name = name })
 end
 
@@ -78,35 +66,20 @@ end
 ---@param msg string|string[]
 ---@param opts? LazyNotifyOpts
 function M.notify(msg, opts)
-  if vim.in_fast_event() then
-    return vim.schedule(function()
-      M.notify(msg, opts)
-    end)
-  end
+  if vim.in_fast_event() then return vim.schedule(function() M.notify(msg, opts) end) end
 
   opts = opts or {}
   if type(msg) == "table" then
     ---@diagnostic disable-next-line: no-unknown
-    msg = table.concat(
-      vim.tbl_filter(function(line)
-        return line or false
-      end, msg),
-      "\n"
-    )
+    msg = table.concat(vim.tbl_filter(function(line) return line or false end, msg), "\n")
   end
-  if opts.stacktrace then
-    msg = msg .. M.pretty_trace({ level = opts.stacklevel or 2 })
-  end
+  if opts.stacktrace then msg = msg .. M.pretty_trace({ level = opts.stacklevel or 2 }) end
   local lang = opts.lang or "markdown"
   local n = opts.once and vim.notify_once or vim.notify
   n(msg, opts.level or vim.log.levels.INFO, {
     on_open = function(win)
-      local ok = pcall(function()
-        vim.treesitter.language.add("markdown")
-      end)
-      if not ok then
-        pcall(require, "nvim-treesitter")
-      end
+      local ok = pcall(function() vim.treesitter.language.add("markdown") end)
+      if not ok then pcall(require, "nvim-treesitter") end
       vim.wo[win].conceallevel = 3
       vim.wo[win].concealcursor = ""
       vim.wo[win].spell = false
@@ -147,13 +120,9 @@ end
 ---@param msg string|table
 ---@param opts? LazyNotifyOpts
 function M.debug(msg, opts)
-  if not require("ai.config").config.debug then
-    return
-  end
+  if not require("ai.config").config.debug then return end
   opts = opts or {}
-  if opts.title then
-    opts.title = "lazy.nvim: " .. opts.title
-  end
+  if opts.title then opts.title = "lazy.nvim: " .. opts.title end
   if type(msg) == "string" then
     M.notify(msg, opts)
   else
@@ -164,9 +133,7 @@ end
 
 function M.tbl_indexof(tbl, value)
   for i, v in ipairs(tbl) do
-    if v == value then
-      return i
-    end
+    if v == value then return i end
   end
   return nil
 end
@@ -177,9 +144,7 @@ function M.update_win_options(winid, opt_name, key, value)
   if cur_opt_value:find(key .. ":") then
     cur_opt_value = cur_opt_value:gsub(key .. ":[^,]*", key .. ":" .. value)
   else
-    if #cur_opt_value > 0 then
-      cur_opt_value = cur_opt_value .. ","
-    end
+    if #cur_opt_value > 0 then cur_opt_value = cur_opt_value .. "," end
     cur_opt_value = cur_opt_value .. key .. ":" .. value
   end
 
@@ -188,15 +153,11 @@ end
 
 function M.get_win_options(winid, opt_name, key)
   local cur_opt_value = api.nvim_get_option_value(opt_name, { win = winid })
-  if not cur_opt_value then
-    return
-  end
+  if not cur_opt_value then return end
   local pieces = vim.split(cur_opt_value, ",")
   for _, piece in ipairs(pieces) do
     local kv_pair = vim.split(piece, ":")
-    if kv_pair[1] == key then
-      return kv_pair[2]
-    end
+    if kv_pair[1] == key then return kv_pair[2] end
   end
 end
 
@@ -233,14 +194,10 @@ end
 M.buf_list_wins = function(bufnr)
   local wins = {}
 
-  if not bufnr or bufnr == 0 then
-    bufnr = api.nvim_get_current_buf()
-  end
+  if not bufnr or bufnr == 0 then bufnr = api.nvim_get_current_buf() end
 
   for _, winnr in ipairs(api.nvim_list_wins()) do
-    if api.nvim_win_is_valid(winnr) and api.nvim_win_get_buf(winnr) == bufnr then
-      table.insert(wins, winnr)
-    end
+    if api.nvim_win_is_valid(winnr) and api.nvim_win_get_buf(winnr) == bufnr then table.insert(wins, winnr) end
   end
 
   return wins

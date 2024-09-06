@@ -15,9 +15,7 @@ setmetatable(M, {
       t[k].API_KEY = v.api_key_name
       -- Hack for aliasing and makes it sane for us.
       t[k].parse_response = v.parse_response_data
-      t[k].has = function()
-        return os.getenv(v.api_key_name) and true or false
-      end
+      t[k].has = function() return os.getenv(v.api_key_name) and true or false end
 
       return t[k]
     end
@@ -36,8 +34,7 @@ E._once = false
 --- intialize the environment variable for current neovim session.
 --- This will only run once and spawn a UI for users to input the envvar.
 ---@private
-E.setup = function(opts)
-end
+E.setup = function(opts) end
 
 ---@param provider Provider
 E.is_local = function(provider)
@@ -47,9 +44,7 @@ end
 
 M.env = E
 
-M.setup = function()
-  M.commands()
-end
+M.setup = function() M.commands() end
 
 ---@private
 ---@param provider Provider
@@ -63,7 +58,8 @@ function M.refresh(provider)
   require("ai.config").override({ provider = provider })
 end
 
-local default_providers = { "openai", "anthropic", "deepseek", "groq", "gemini", "cohere", "hyperbolic", "mistral", "ollama" }
+local default_providers =
+  { "openai", "anthropic", "deepseek", "groq", "gemini", "cohere", "hyperbolic", "mistral", "ollama" }
 
 ---@private
 M.commands = function()
@@ -74,15 +70,11 @@ M.commands = function()
     nargs = 1,
     desc = "nvim.ai: switch provider",
     complete = function(_, line)
-      if line:match("^%s*NvimAISwitchProvider %w") then
-        return {}
-      end
+      if line:match("^%s*NvimAISwitchProvider %w") then return {} end
       local prefix = line:match("^%s*NvimAISwitchProvider (%w*)") or ""
       -- join two tables
       local Keys = vim.list_extend(default_providers, vim.tbl_keys(Config.config.vendors or {}))
-      return vim.tbl_filter(function(key)
-        return key:find(prefix) == 1
-      end, Keys)
+      return vim.tbl_filter(function(key) return key:find(prefix) == 1 end, Keys)
     end,
   })
 end
@@ -102,15 +94,10 @@ M.parse_config = function(opts)
   end
 
   return s1,
-      vim
-      .iter(s2)
-      :filter(function(k, v)
-        return type(v) ~= "function"
-      end)
-      :fold({}, function(acc, k, v)
-        acc[k] = v
-        return acc
-      end)
+    vim.iter(s2):filter(function(k, v) return type(v) ~= "function" end):fold({}, function(acc, k, v)
+      acc[k] = v
+      return acc
+    end)
 end
 
 ---@private

@@ -7,9 +7,7 @@ local M = {}
 
 M.API_KEY = "CO_API_KEY"
 
-M.has = function()
-  return vim.fn.executable("curl") == 1 and os.getenv(M.API_KEY) ~= nil
-end
+M.has = function() return vim.fn.executable("curl") == 1 and os.getenv(M.API_KEY) ~= nil end
 
 M.parse_response = function(data_stream, _, on_chunk)
   local json = vim.json.decode(data_stream)
@@ -18,9 +16,7 @@ M.parse_response = function(data_stream, _, on_chunk)
     --opts.on_complete(nil)
     return
   else
-    if json.text ~= nil then
-      on_chunk(json.text)
-    end
+    if json.text ~= nil then on_chunk(json.text) end
   end
 end
 
@@ -63,7 +59,7 @@ M.parse_curl_args = function(provider, request)
       message = prompt,
       premble = {
         role = "SYSTEM",
-        message = request.system_prompt
+        message = request.system_prompt,
       },
       chat_history = messages,
       stream = true,
