@@ -35,15 +35,17 @@ end
 function Inline:insert_lines()
   vim.schedule(function()
     local lines = vim.split(self.state.code_block, "\n", true)
+    local insert_position = self.state.cursor_line
+
     for i, line in ipairs(lines) do
       if not line:match("^```") then
-        vim.api.nvim_buf_set_lines(0, self.state.start_line + i - 1, self.state.start_line + i - 1, false, { line })
-        --vim.api.nvim_buf_set_lines(0, self.state.cursor_line-1, self.state.cursor_line-1, false, {line})
-        -- self.state.cursor_line = self.state.cursor_line + 1
-        -- vim.fn.cursor(self.state.cursor_line, 1)
+        vim.api.nvim_buf_set_lines(0, insert_position, insert_position, false, { line })
+        insert_position = insert_position + 1
       end
     end
-    -- self.state.end_line = self.state.cursor_line
+
+    self.state.end_line = insert_position - 1
+    vim.fn.cursor(self.state.end_line, 1)
   end)
 end
 
