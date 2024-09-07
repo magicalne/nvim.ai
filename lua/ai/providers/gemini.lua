@@ -13,7 +13,7 @@ function M.parse_response(data_stream, _, on_chunk)
   if data_stream == nil or data_stream == "" then return end
   local data_match = data_stream:match("^data: (.+)$")
   local json = vim.json.decode(data_match)
-  if json.candidates and #json.candidates > 0 then
+  if json and json.candidates and #json.candidates > 0 then
     for _, candidate in pairs(json.candidates) do
       if candidate.content.parts and #candidate.content.parts > 0 then
         for _, part in ipairs(candidate.content.parts) do
@@ -47,8 +47,8 @@ function M.parse_curl_args(provider, request)
           text = message.content,
         } },
       }
-      table.insert(contents, m)
     end
+    table.insert(contents, m)
   end
 
   local system_instruction = {
