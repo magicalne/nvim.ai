@@ -34,7 +34,21 @@ local function create_buf()
 end
 
 local function get_win_config()
-  local width = ChatDialog.config.width
+  local width_rate = ChatDialog.config.width
+  local width
+
+  if type(width_rate) == "string" then
+    -- Calculate width based on percentage of the current screen width
+    local screen_width = api.nvim_get_option("columns")
+    -- 30%
+    width = math.floor(screen_width * tonumber(width_rate:sub(1, -2)) / 100)
+  elseif type(width_rate) == "number" then
+    -- Use the fixed width value
+    width = width_rate
+  else
+    -- Default to a fixed width if the configuration is invalid
+    width = 40
+  end
   local height = api.nvim_get_option("lines") - 4
   local col = ChatDialog.config.side == "left" and 0 or (api.nvim_get_option("columns") - width)
 
