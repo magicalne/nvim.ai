@@ -141,7 +141,10 @@ function ChatDialog.save_file()
     return
   end
 
-  local filename = ChatDialog.state.last_saved_file or generate_chat_filename()
+  local filename = ChatDialog.state.last_saved_file
+  if filename == nil or filename == "" then
+    filename = generate_chat_filename()
+  end
 
   -- Get buffer contents
   local lines = api.nvim_buf_get_lines(ChatDialog.state.buf, 0, -1, false)
