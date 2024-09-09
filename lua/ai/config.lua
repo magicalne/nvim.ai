@@ -154,7 +154,6 @@ function M.setup(user_config)
 
   -- Validate configuration
   assert(M.config.ui.side == "left" or M.config.ui.side == "right", "UI side must be 'left' or 'right'")
-  assert(type(M.config.ui.width) == "number", "UI width must be a number")
 
   -- Set up API key
   -- if not M.config.llm.api_key then
