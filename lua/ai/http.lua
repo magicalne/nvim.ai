@@ -54,6 +54,10 @@ M.stream = function(system_prompt, messages, on_chunk, on_complete)
       on_complete(err)
     end,
     callback = function(resp)
+      if Config.get('debug') then
+        print("resp:", vim.inspect(resp))
+      end
+
       active_job = nil
       on_complete(nil)
     end,
