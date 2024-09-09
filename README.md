@@ -53,25 +53,6 @@ Plug 'magicalne/nvim.ai', {'branch': 'main'}
 -- Setup lazy.nvim
 require("lazy").setup({
   spec = {
-    -- cmp is optional
-    {
-      "hrsh7th/nvim-cmp",
-      event = "InsertEnter",
-      dependencies = {
-        "hrsh7th/cmp-nvim-lsp",
-        "hrsh7th/cmp-buffer",
-      },
-      config = function()
-        local cmp = require'cmp'
-        cmp.setup({
-          mapping = {
-            sources = cmp.config.sources({
-              { name = 'nvimai_cmp_source' }, -- This is optional but recommended
-            })
-          }
-        })
-      end,
-    },
     {"nvim-treesitter/nvim-treesitter", build = ":TSUpdate"}, -- nvim.ai depends on treesitter
     {
       "magicalne/nvim.ai",
@@ -154,18 +135,6 @@ ai.setup({
 })
 ```
 
-
-### Integrate with cmp
-
-You may want to autocomplete commands with `cmp`:
-
-```Lua
-sources = cmp.config.sources({
-  { name = 'nvimai_cmp_source' },
-  --...
-}
-```
-
 ### Default Keymaps
 
 #### Chat
@@ -188,7 +157,7 @@ sources = cmp.config.sources({
 The chat dialog is a special buffer. `nvim.ai` will parse the content with keywords. There are 3 roles in the buffer:
 - **/system**: You can overwrite the system prompt by inserting `/system your_system_prompt` in the first line.
 - **/you**: Lines after this are your prompt.
-  - You can add buffers with `/buf {bufnr}` (Autocomplete with `nvim_cmp_source` in `cmp` is recommended.)
+  - You can add buffers with `/buf {bufnr}`
   - Once you finish your prompt, you can send the request by pressing `Enter` in normal mode.
 - **/assistant**: The streaming content from LLM will appear below this line.
 Since the chat dialog is just a buffer, you can edit anything in it. Be aware that only the last block of `/you` will be treated as the prompt.
