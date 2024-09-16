@@ -18,47 +18,33 @@ source.get_keyword_pattern = function() return [[\%(/\k*\)]] end
 source.complete = function(self, request, callback)
   local input = string.sub(request.context.cursor_before_line, request.offset)
   local items = {}
+  local function cmd(c)
+    local buffers = vim.api.nvim_list_bufs()
+    for _, bufnr in ipairs(buffers) do
+      if vim.api.nvim_buf_is_loaded(bufnr) then
+        local name = vim.api.nvim_buf_get_name(bufnr)
+        if name ~= "" then
+          local short_name = vim.fn.fnamemodify(name, ":t") -- Get the tail (filename) of the path
+          table.insert(items, {
+            label = string.format("%s %d: %s", c, bufnr, short_name),
+            kind = cmp.lsp.CompletionItemKind.File,
+            data = { bufnr = bufnr },
+            documentation = {
+              kind = cmp.lsp.MarkupKind.Markdown,
+              value = string.format("Buffer: %d\nFull path: %s", bufnr, name),
+            },
+          })
+        end
+      end
+    end
+  end
 
   if input:match("^/buf") then
     -- Handle /buf command
-    local buffers = vim.api.nvim_list_bufs()
-    for _, bufnr in ipairs(buffers) do
-      if vim.api.nvim_buf_is_loaded(bufnr) then
-        local name = vim.api.nvim_buf_get_name(bufnr)
-        if name ~= "" then
-          local short_name = vim.fn.fnamemodify(name, ":t") -- Get the tail (filename) of the path
-          table.insert(items, {
-            label = string.format("/buf %d: %s", bufnr, short_name),
-            kind = cmp.lsp.CompletionItemKind.File,
-            data = { bufnr = bufnr },
-            documentation = {
-              kind = cmp.lsp.MarkupKind.Markdown,
-              value = string.format("Buffer: %d\nFull path: %s", bufnr, name),
-            },
-          })
-        end
-      end
-    end
+    cmd("/buf")
   elseif input:match("^/diagnostics") then
     -- Handle /diagnostics command
-    local buffers = vim.api.nvim_list_bufs()
-    for _, bufnr in ipairs(buffers) do
-      if vim.api.nvim_buf_is_loaded(bufnr) then
-        local name = vim.api.nvim_buf_get_name(bufnr)
-        if name ~= "" then
-          local short_name = vim.fn.fnamemodify(name, ":t") -- Get the tail (filename) of the path
-          table.insert(items, {
-            label = string.format("/diagnostics %d: %s", bufnr, short_name),
-            kind = cmp.lsp.CompletionItemKind.File,
-            data = { bufnr = bufnr },
-            documentation = {
-              kind = cmp.lsp.MarkupKind.Markdown,
-              value = string.format("Buffer: %d\nFull path: %s", bufnr, name),
-            },
-          })
-        end
-      end
-    end
+    cmd("/diagnostics")
   else
     -- Handle other special commands
     for _, command in ipairs(special_commands) do

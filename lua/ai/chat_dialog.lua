@@ -10,6 +10,8 @@ local fn = vim.fn
 local ChatDialog = {}
 ChatDialog.ROLE_USER = "user"
 ChatDialog.ROLE_ASSISTANT = "assistant"
+local chat_dialog_group = vim.api.nvim_create_augroup("ChatDialogGroup", { clear = false })
+local cmp_source_setup = false
 
 ChatDialog.config = {
   width = 40,
@@ -330,13 +332,16 @@ end
 function ChatDialog.send()
   local system = ChatDialog.get_system_prompt() or Prompts.GLOBAL_SYSTEM_PROMPT
   local prompt = ChatDialog.last_user_request()
-  local messages = ChatDialog.get_messages()
-
-  ChatDialog.append_text("\n\n/assistant:\n")
-  -- Assistant.ask(system, messages, ChatDialog.append_text, ChatDialog.on_complete)
-  local provider = config.config.provider
-  local p = Providers.get(provider)
-  Http.stream(system, messages, ChatDialog.append_text, ChatDialog.on_complete)
+  local status, messages = pcall(ChatDialog.get_messages)
+  if not status then
+    print(messages)
+  else
+    ChatDialog.append_text("\n\n/assistant:\n")
+    -- Assistant.ask(system, messages, ChatDialog.append_text, ChatDialog.on_complete)
+    local provider = config.config.provider
+    local p = Providers.get(provider)
+    Http.stream(system, messages, ChatDialog.append_text, ChatDialog.on_complete)
+  end
 end
 
 function ChatDialog.get_system_prompt()
@@ -395,29 +400,26 @@ function ChatDialog.setup_autocmd()
   -- Check if cmp is available
   local has_cmp, cmp = pcall(require, "cmp")
   if not has_cmp then return end
-  local bufnr = ChatDialog.state.buf
 
   -- Create an autocmd that sets up the cmp source when entering the chat buffer
   vim.api.nvim_create_autocmd("InsertEnter", {
-    once = true,
-    buffer = bufnr,
+    group = chat_dialog_group,
+    once = false,
     callback = function()
       -- Check if the cmp source is already set up for this buffer
-      if not ChatDialog.cmp_source_setup then
+      -- This is important. Otherwise duplicated source will be inserted into cmp.sources.
+      if not cmp_source_setup then
         -- Register our custom source
         cmp.register_source("nvimai_cmp_source", require("ai.cmp_source").new())
+        -- Set up cmp for this buffer with the updated sources
+        cmp_source_setup = true
         -- Get the current buffer's sources
         local sources = cmp.get_config().sources
-
         -- Add our custom source to the beginning of the sources list
-        table.insert(sources, 1, { name = "nvimai_cmp_source" })
-
-        -- Set up cmp for this buffer with the updated sources
+        table.insert(sources, 1, { name = "nvimai_cmp_source", group_index = 2, })
         cmp.setup.buffer({
-          sources = sources,
+          sources
         })
-        -- Mark that we've set up the cmp source
-        ChatDialog.cmp_source_setup = true
       end
     end,
   })
