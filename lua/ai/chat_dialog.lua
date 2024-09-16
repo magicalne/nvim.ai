@@ -400,26 +400,27 @@ function ChatDialog.setup_autocmd()
   -- Check if cmp is available
   local has_cmp, cmp = pcall(require, "cmp")
   if not has_cmp then return end
+  cmp.register_source("nvimai_cmp_source", require("ai.cmp_source").new())
 
   -- Create an autocmd that sets up the cmp source when entering the chat buffer
   vim.api.nvim_create_autocmd("InsertEnter", {
     group = chat_dialog_group,
     once = false,
     callback = function()
-      -- Check if the cmp source is already set up for this buffer
-      -- This is important. Otherwise duplicated source will be inserted into cmp.sources.
-      if not cmp_source_setup then
-        -- Register our custom source
-        cmp.register_source("nvimai_cmp_source", require("ai.cmp_source").new())
-        -- Set up cmp for this buffer with the updated sources
-        cmp_source_setup = true
-        -- Get the current buffer's sources
-        local sources = cmp.get_config().sources
-        -- Add our custom source to the beginning of the sources list
-        table.insert(sources, 1, { name = "nvimai_cmp_source", group_index = 2, })
-        cmp.setup.buffer({
-          sources
-        })
+      local bufnr = vim.api.nvim_get_current_buf()
+      local sources = cmp.get_config().sources
+      local source_name = "nvimai_cmp_source"
+      if bufnr == ChatDialog.state.buf then
+        -- Check if the source is inserted before.
+        if sources[1].name ~= source_name then
+          table.insert(sources, 1, { name = source_name, group_index = 2, })
+          cmp.setup.filetype({'markdown', config.FILE_TYPE}, {
+            sources
+          })
+        end
+      elseif sources[1].name == source_name then
+        -- Remove source for other buffers
+        table.remove(sources, 1)
       end
     end,
   })
