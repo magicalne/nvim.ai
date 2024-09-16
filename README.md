@@ -36,7 +36,6 @@ Set up context with diagnostics from LSP.
    - Sambanova
    - Hyperbolic
    - OpenAI (not tested)
-- 🔧 Easy integration with nvim-cmp for command autocompletion
 
 ## Install
 
