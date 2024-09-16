@@ -332,13 +332,16 @@ end
 function ChatDialog.send()
   local system = ChatDialog.get_system_prompt() or Prompts.GLOBAL_SYSTEM_PROMPT
   local prompt = ChatDialog.last_user_request()
-  local messages = ChatDialog.get_messages()
-
-  ChatDialog.append_text("\n\n/assistant:\n")
-  -- Assistant.ask(system, messages, ChatDialog.append_text, ChatDialog.on_complete)
-  local provider = config.config.provider
-  local p = Providers.get(provider)
-  Http.stream(system, messages, ChatDialog.append_text, ChatDialog.on_complete)
+  local status, messages = pcall(ChatDialog.get_messages)
+  if not status then
+    print(messages)
+  else
+    ChatDialog.append_text("\n\n/assistant:\n")
+    -- Assistant.ask(system, messages, ChatDialog.append_text, ChatDialog.on_complete)
+    local provider = config.config.provider
+    local p = Providers.get(provider)
+    Http.stream(system, messages, ChatDialog.append_text, ChatDialog.on_complete)
+  end
 end
 
 function ChatDialog.get_system_prompt()

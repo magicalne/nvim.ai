@@ -50,6 +50,8 @@ local function setup_document(buffer_numbers)
       local formatted_content = string.format("%s\n```%s\n%s\n```", filename, filetype, buffer_content)
 
       table.insert(contents, formatted_content)
+    else
+      error("Failed to parse buffer in /buf: " .. bufnr)
     end
   end
   if #contents > 0 then
@@ -189,8 +191,13 @@ local function get_all_diagnostics_info(buffers)
   local all_diagnostics = {}
 
   for _, bufnr in ipairs(buffers) do
-    local diagnostics_info = get_diagnostics_info(bufnr)
-    if diagnostics_info ~= "" then table.insert(all_diagnostics, diagnostics_info) end
+
+    if vim.api.nvim_buf_is_valid(bufnr) then
+      local diagnostics_info = get_diagnostics_info(bufnr)
+      if diagnostics_info ~= "" then table.insert(all_diagnostics, diagnostics_info) end
+    else
+      error("Failed to parse bufnr in /diagnostic: " .. bufnr)
+    end
   end
 
   if #all_diagnostics > 0 then
