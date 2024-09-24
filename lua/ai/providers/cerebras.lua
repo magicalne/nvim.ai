@@ -1,31 +1,17 @@
--- https://community.sambanova.ai/t/create-chat-completion-api/105
+-- https://inference-docs.cerebras.ai/introduction
 local Utils = require("ai.utils")
 local Config = require("ai.config")
 local P = require("ai.providers")
+local OpenAI = require("ai.providers.openai")
 
 local M = {}
 
-M.API_KEY = "FAST_API_KEY"
+M.API_KEY = "CEREBRAS_API_KEY"
 
 function M.has() return vim.fn.executable("curl") == 1 and os.getenv(M.API_KEY) ~= nil end
 
-function M.parse_response(data_stream, _, on_chunk)
-  if data_stream == nil or data_stream == "" then return end
-  if not data_stream:match("^data") then
-    print("Rate limit: ", data_stream)
-    return
-  end
-  local data_match = data_stream:match("^data: (.+)$")
-  if data_match == "[DONE]" then
-    --opts.on_complete(nil)
-  else
-    local json = vim.json.decode(data_match)
-    if json.error then print("SAMBA request error: ", json.error.message) end
-    if json.choices and #json.choices > 0 then
-      local content = json.choices[1].delta.content or ""
-      on_chunk(content)
-    end
-  end
+function M.parse_response(data_stream, data_event_state, on_chunk)
+  return OpenAI.parse_response(data_stream, data_event_state, on_chunk)
 end
 
 function M.parse_curl_args(provider, request)

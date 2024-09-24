@@ -55,11 +55,22 @@ function M.refresh(provider)
   else
     Utils.info("Switch to provider: " .. provider, { once = true, title = "nvim.ai" })
   end
-  require("ai.config").override({ provider = provider })
+  Config.update_provider(provider)
 end
 
-local default_providers =
-  { "openai", "anthropic", "deepseek", "groq", "gemini", "cohere", "hyperbolic", "mistral", "ollama" }
+local default_providers = {
+  "openai",
+  "anthropic",
+  "deepseek",
+  "gemini",
+  "cohere",
+  "hyperbolic",
+  "groq",
+  "cerebras",
+  "snova",
+  "mistral",
+  "ollama",
+}
 
 ---@private
 M.commands = function()

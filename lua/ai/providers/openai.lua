@@ -54,8 +54,11 @@ M.parse_curl_args = function(provider, request)
     insecure = base.allow_insecure,
     headers = headers,
     body = vim.tbl_deep_extend("force", {
-      model = base.model,
       messages = messages,
+      model = base.model,
+      temperature = base.temperature or 0.1,
+      max_tokens = base.max_tokens or 4096,
+      top_p = 1,
       stream = true,
     }, body_opts),
   }
