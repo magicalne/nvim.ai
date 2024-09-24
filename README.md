@@ -35,6 +35,7 @@ Set up context with diagnostics from LSP.
    - Groq
    - Sambanova
    - Hyperbolic
+   - Cerebras
    - OpenAI (not tested)
 
 ## Install
@@ -102,6 +103,7 @@ export GOOGLE_API_KEY=""
 export HYPERBOLIC_API_KEY=""
 export OPENROUTER_API_KEY=""
 export FAST_API_KEY=""
+export CEREBRAS_API_KEY=""
 ```
 
 ```Lua
@@ -109,6 +111,7 @@ local ai = require('ai')
 ai.setup({
   --provider = "snova",
   --provider = "hyperbolic",
+  --provider = "cerebras",
   --provider = "gemini",
   --provider = "mistral",
   provider = "anthropic",

@@ -52,20 +52,6 @@ M.defaults = {
     max_tokens = 4096,
     ["local"] = false,
   },
-  snova = {
-    endpoint = "https://fast-api.snova.ai",
-    model = "Meta-Llama-3.1-70B-Instruct", -- or Meta-Llama-3.1-70B-Instruct, Meta-Llama-3.1-8B-Instruct, Meta-Llama-3.1-405B-Instruct
-    temperature = 0,
-    max_tokens = 3000, --sambanova's context is smaller: https://community.sambanova.ai/t/quick-start-guide/104
-    ["local"] = false,
-  },
-  groq = {
-    endpoint = "https://api.groq.com",
-    model = "llama-3.1-70b-versatile", -- or llama3.1-7b-instant, llama3.1:405b, gemma2-9b-it
-    temperature = 0,
-    max_tokens = 4096,
-    ["local"] = false,
-  },
   anthropic = {
     endpoint = "https://api.anthropic.com",
     model = "claude-3-5-sonnet-20240620",
@@ -83,6 +69,27 @@ M.defaults = {
   hyperbolic = {
     endpoint = "https://api.hyperbolic.xyz",
     model = "meta-llama/Meta-Llama-3.1-70B-Instruct", -- or meta-llama/Meta-Llama-3.1-405B
+    temperature = 0,
+    max_tokens = 4096,
+    ["local"] = false,
+  },
+  cerebras = {
+    endpoint = "https://api.cerebras.ai",
+    model = "llama3.1-70b", -- or llama3.1-8b
+    temperature = 0,
+    max_tokens = 8192,
+    ["local"] = false,
+  },
+  snova = {
+    endpoint = "https://fast-api.snova.ai",
+    model = "Meta-Llama-3.1-70B-Instruct", -- or Meta-Llama-3.1-70B-Instruct, Meta-Llama-3.1-8B-Instruct, Meta-Llama-3.1-405B-Instruct
+    temperature = 0,
+    max_tokens = 3000, --sambanova's context is smaller: https://community.sambanova.ai/t/quick-start-guide/104
+    ["local"] = false,
+  },
+  groq = {
+    endpoint = "https://api.groq.com",
+    model = "llama-3.1-70b-versatile", -- or llama3.1-7b-instant, llama3.1:405b, gemma2-9b-it
     temperature = 0,
     max_tokens = 4096,
     ["local"] = false,
@@ -154,14 +161,9 @@ function M.setup(user_config)
 
   -- Validate configuration
   assert(M.config.ui.side == "left" or M.config.ui.side == "right", "UI side must be 'left' or 'right'")
-
-  -- Set up API key
-  -- if not M.config.llm.api_key then
-  --   local env_var = M.config.llm.provider == "openai" and "OPENAI_API_KEY" or "ANTHROPIC_API_KEY"
-  --   M.config.llm.api_key = vim.env[env_var]
-  --   assert(M.config.llm.api_key, env_var .. " environment variable not set")
-  -- end
 end
+
+function M.update_provider(new_provider) M.config.provider = new_provider end
 
 function M.get(what) return M.config[what] end
 

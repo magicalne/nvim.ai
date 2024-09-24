@@ -191,7 +191,6 @@ local function get_all_diagnostics_info(buffers)
   local all_diagnostics = {}
 
   for _, bufnr in ipairs(buffers) do
-
     if vim.api.nvim_buf_is_valid(bufnr) then
       local diagnostics_info = get_diagnostics_info(bufnr)
       if diagnostics_info ~= "" then table.insert(all_diagnostics, diagnostics_info) end
