@@ -11,7 +11,7 @@ function M.has() return vim.fn.executable("curl") == 1 and os.getenv(M.API_KEY) 
 function M.parse_response(data_stream, _, on_chunk)
   if data_stream == nil or data_stream == "" then return end
   local data_match = data_stream:match("^data: (.+)$")
-  if data_match == "[DONE]" then
+  if data_match == "[DONE]" or data_match == nil then
     --opts.on_complete(nil)
   else
     local json = vim.json.decode(data_match)
