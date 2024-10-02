@@ -74,8 +74,6 @@ M.stream = function(system_prompt, messages, on_chunk, on_complete)
   })
 
   return active_job
-
-
 end
 
 return M
