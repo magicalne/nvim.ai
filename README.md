@@ -139,6 +139,23 @@ ai.setup({
 
 ### Default Keymaps
 
+```lua
+{
+  -- ..
+  -- Keymaps
+  keymaps = {
+    toggle          = "<leader>c", -- Toggle chat dialog
+    send            = "<CR>",      -- Send message in normal mode
+    close           = "q",         -- Close chat dialog
+    clear           = "<C-l>",     -- Clear chat history
+    stop_generate   = "<C-c>",     -- Stop generating
+    previous_chat   = "<leader>[", -- Open previous chat from history
+    next_chat       = "<leader>]", -- Open next chat from history
+    inline_assist   = "<leader>i", -- Run InlineAssist command with prompt
+  },
+}
+```
+
 #### Chat
 - <kbd>Leader</kbd><kbd>c</kbd> -- Toggle chat
 - <kbd>Leader</kbd><kbd>\[</kbd> -- Open previous chat
@@ -146,6 +163,7 @@ ai.setup({
 - <kbd>q</kbd> -- Close chat
 - <kbd>Enter</kbd> -- Send message in normal mode
 - <kbd>Control</kbd><kbd>l</kbd> -- Clear chat history
+- <kbd>Control</kbd><kbd>c</kbd> -- Stop generating
 
 #### Inline Assist
 

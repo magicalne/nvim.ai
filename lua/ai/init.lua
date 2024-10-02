@@ -20,6 +20,10 @@ local function setup_keymaps()
     vim.keymap.set("n", keymaps.clear, ChatDialog.clear, opts)
   end
 
+vim.api.nvim_set_keymap('n', keymaps.stop_generate, ':doautocmd User NVIMAIHTTPEscape<CR>', { noremap = true, silent = true })
+
+local M = {}
+
   -- Create an autocommand to set ChatDialog keymaps when entering the chat-dialog buffer
   vim.api.nvim_create_autocmd("FileType", {
     pattern = Config.FILE_TYPE,

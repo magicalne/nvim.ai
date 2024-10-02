@@ -115,13 +115,14 @@ M.defaults = {
 
   -- Keymaps
   keymaps = {
-    toggle = "<leader>c", -- Toggle chat dialog
-    send = "<CR>", -- Send message in normal mode
-    close = "q", -- Close chat dialog
-    clear = "<C-l>", -- Clear chat history
-    previous_chat = "<leader>[", -- Open previous chat from history
-    next_chat = "<leader>]", -- Open next chat from history
-    inline_assist = "<leader>i", -- Run InlineAssist command with prompt
+    toggle          = "<leader>c", -- Toggle chat dialog
+    send            = "<CR>",      -- Send message in normal mode
+    close           = "q",         -- Close chat dialog
+    clear           = "<C-l>",     -- Clear chat history
+    previous_chat   = "<leader>[", -- Open previous chat from history
+    next_chat       = "<leader>]", -- Open next chat from history
+    inline_assist   = "<leader>i", -- Run InlineAssist command with prompt
+    stop_generate   = "<C-c>",     -- Stop generating
   },
 
   -- Behavior
