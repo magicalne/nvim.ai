@@ -132,8 +132,7 @@ local function squash_tokens(tokens)
       txtEndIndex = v.endIndex
     else
       if #txt > 0 then
-        out[#out + 1] =
-          { type = "text", value = table_concat(txt), startIndex = txtStartIndex, endIndex = txtEndIndex }
+        out[#out + 1] = { type = "text", value = table_concat(txt), startIndex = txtStartIndex, endIndex = txtEndIndex }
         txt = {}
       end
       out[#out + 1] = v
