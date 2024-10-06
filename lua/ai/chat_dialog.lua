@@ -411,7 +411,9 @@ function ChatDialog.setup_autocmd()
       if bufnr == ChatDialog.state.buf then
         -- Check if the source is inserted before.
         if sources[1].name ~= source_name then
-          table.insert(sources, 1, { name = source_name, group_index = 2 })
+          -- table.insert(sources, 1, { name = source_name, group_index = 2 })
+          -- NOTE: user complains about cannot see the keywords in the cmp list after lowering the priorty of the source
+          table.insert(sources, 1, { name = source_name, group_index = 0 })
           cmp.setup.filetype({ "markdown", config.FILE_TYPE }, {
             sources,
           })
