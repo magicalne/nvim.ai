@@ -44,7 +44,7 @@ Set up context with diagnostics from LSP.
 ```
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'nvim-lua/plenary.nvim'
-Plug 'magicalne/nvim.ai', {'branch': 'main'}
+Plug 'magicalne/nvim.ai', { 'tag': '*' }
 ```
 
 ### Lazy
@@ -56,6 +56,7 @@ require("lazy").setup({
     {"nvim-treesitter/nvim-treesitter", build = ":TSUpdate"}, -- nvim.ai depends on treesitter
     {
       "magicalne/nvim.ai",
+      version = "*",
       dependencies = {
         "nvim-lua/plenary.nvim",
         "nvim-treesitter/nvim-treesitter",
