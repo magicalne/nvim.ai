@@ -69,8 +69,9 @@ function Inline:on_complete(is_insert)
 end
 
 function Inline:start(prompt, is_insert)
+  -- TODO: process metadata and system_prompt
   local system_prompt = Prompts.GLOBAL_SYSTEM_PROMPT
-  -- TODO: Cannot just get the last message from `asssitance`.
+  -- NOTE: Cannot just get the last message from `asssitance`.
   -- Provider like anthropic requires first role must be `user`.
   -- Maybe just take the last 2 messages?
   local messages = ChatDialog.get_messages() or {}

@@ -23,15 +23,60 @@ ChatDialog.state = {
   buf = nil,
   win = nil,
   last_saved_file = nil,
+  metadata = {
+    provider = nil,
+    model = nil,
+    temperature = nil,
+    system_prompt = nil,
+  },
 }
+
+local function init_buf_content(bufnr)
+  local metadata = {
+    "---",
+    "provider: " .. (ChatDialog.state.metadata.provider or ""),
+    "model: " .. (ChatDialog.state.metadata.model or ""),
+    "temperature: " .. (ChatDialog.state.metadata.temperature or ""),
+  }
+
+  -- Split the system_prompt into lines and insert each line into the metadata table
+  local system_prompt_lines = ChatDialog.state.metadata.system_prompt or ""
+
+  local split_lines = vim.split(system_prompt_lines, '\n')
+  -- Combine the "system_prompt: " label with the first line of the system_prompt
+  if #split_lines > 0 then
+    table.insert(metadata, "system_prompt: " .. split_lines[1])
+    -- Insert each subsequent line of the system_prompt
+    for i = 2, #split_lines do
+      table.insert(metadata, split_lines[i])
+    end
+  else
+    table.insert(metadata, "system_prompt: ")
+  end
+
+  -- Continue with the rest of the metadata
+  table.insert(metadata, "---")
+  table.insert(metadata, "")
+  table.insert(metadata, "/you")
+  table.insert(metadata, "")
+
+  -- Set the lines in the buffer
+  api.nvim_buf_set_lines(bufnr, 0, -1, false, metadata)
+end
 
 local function create_buf()
   local buf = api.nvim_create_buf(false, true)
-  api.nvim_buf_set_option(buf, "buftype", "nofile")
+  -- api.nvim_buf_set_option(buf, "buftype", "nofile")
   api.nvim_buf_set_option(buf, "bufhidden", "wipe")
   api.nvim_buf_set_option(buf, "buflisted", false)
   api.nvim_buf_set_option(buf, "swapfile", false)
   api.nvim_buf_set_option(buf, "filetype", config.FILE_TYPE)
+
+  ChatDialog.state.metadata.provider = config.config.provider
+  ChatDialog.state.metadata.model = config.config[config.config.provider].model
+  ChatDialog.state.metadata.temperature = config.config[config.config.provider].temperature
+  ChatDialog.state.metadata.system_prompt = Prompts.GLOBAL_SYSTEM_PROMPT
+  init_buf_content(buf)
   return buf
 end
 
@@ -83,7 +128,57 @@ local function generate_chat_filename()
   return filename
 end
 
-function parse_messages(lines)
+local function parse_metadata(lines)
+    local markdown_content = table.concat(lines, '\n')
+    -- Trim leading and trailing whitespace
+    local function trim(s)
+        return s:match("^%s*(.-)%s*$")
+    end
+
+    -- Extract the metadata section between the first two ---
+    local metadata_content = markdown_content:match("^%s*---%s*\n(.-)\n%s*---%s*")
+    if not metadata_content then
+        return nil
+    end
+
+    local metadata = {}
+
+    -- Iterate through lines
+    for line in metadata_content:gmatch("[^\n]+") do
+        line = trim(line)
+
+        -- Check if this is a new key-value pair
+        local key, value = line:match("^(%w+):%s*(.*)$")
+        if key then
+              metadata[key] = trim(value or "")
+        end
+    end
+
+    return metadata
+end
+
+local function parse_system_prompt(lines)
+  -- process single line system prompt
+  local system_prompt_lines = {}
+  local flag = false
+  for _, line in ipairs(lines) do
+    if line:match("^/system%s(.+)") then
+      flag = true
+      table.insert(system_prompt_lines, line:match("^/system%s(.+)"))
+    elseif flag and line ~= "/you" then
+      table.insert(system_prompt_lines, line)
+    else
+      break
+    end
+  end
+  if #system_prompt_lines > 0 then
+    return table.concat(system_prompt_lines, '\n')
+  else
+    return Prompts.GLOBAL_SYSTEM_PROMPT
+  end
+end
+
+local function parse_messages(lines)
   local result = {}
   local current_role = nil
   local current_content = {}
@@ -135,6 +230,15 @@ function parse_messages(lines)
   end
 
   return result
+end
+
+local function parse_content(lines)
+  local metadata = parse_metadata(lines)
+  local system_prompt = parse_system_prompt(lines)
+  local messages = parse_messages(lines)
+  print('messages', vim.inspect(messages))
+
+  return metadata, system_prompt, messages
 end
 
 function ChatDialog.save_file()
@@ -242,14 +346,17 @@ function ChatDialog.open()
   local file_to_load = ChatDialog.state.last_saved_file or ChatDialog.get_chat_histories()[1]
 
   if file_to_load then
+    -- load from last saved file
     ChatDialog.state.buf = vim.fn.bufadd(file_to_load)
     vim.fn.bufload(ChatDialog.state.buf)
-    api.nvim_buf_set_option(ChatDialog.state.buf, "buftype", "nofile")
+    -- api.nvim_buf_set_option(ChatDialog.state.buf, "buftype", "nofile")
+
     api.nvim_buf_set_option(ChatDialog.state.buf, "bufhidden", "wipe")
     api.nvim_buf_set_option(ChatDialog.state.buf, "buflisted", false)
     api.nvim_buf_set_option(ChatDialog.state.buf, "swapfile", false)
     api.nvim_buf_set_option(ChatDialog.state.buf, "filetype", config.FILE_TYPE)
   else
+    -- create a new buf
     ChatDialog.state.buf = ChatDialog.state.buf or create_buf()
   end
   local win_config = get_win_config()
@@ -277,9 +384,9 @@ function ChatDialog.toggle()
   end
 end
 
-function ChatDialog.on_complete(t)
+function ChatDialog.on_complete(_)
   vim.defer_fn(function()
-    api.nvim_buf_set_option(ChatDialog.state.buf, "modifiable", true)
+    api.nvim_set_option_value("modifiable", true, { buf = ChatDialog.state.buf })
     api.nvim_buf_set_lines(ChatDialog.state.buf, -1, -1, false, { "", "/you:", "" })
     ChatDialog.save_file()
   end, 10) -- 10ms delay
@@ -287,16 +394,15 @@ end
 
 function ChatDialog.append_text(text)
   if
-    not ChatDialog.state.buf
-    or not pcall(vim.api.nvim_buf_is_loaded, ChatDialog.state.buf)
-    or not pcall(vim.api.nvim_buf_get_option, ChatDialog.state.buf, "buflisted")
+      not ChatDialog.state.buf
+      or not pcall(vim.api.nvim_buf_is_loaded, ChatDialog.state.buf)
+      or not pcall(vim.api.nvim_buf_get_option, ChatDialog.state.buf, "buflisted")
   then
     return
   end
 
   vim.schedule(function()
     -- Get the last line and its content
-    local last_line = api.nvim_buf_line_count(ChatDialog.state.buf)
     local last_line_content = api.nvim_buf_get_lines(ChatDialog.state.buf, -2, -1, false)[1] or ""
 
     -- Split the new text into lines
@@ -328,34 +434,20 @@ function ChatDialog.clear()
 end
 
 function ChatDialog.send()
-  local system = ChatDialog.get_system_prompt() or Prompts.GLOBAL_SYSTEM_PROMPT
-  local prompt = ChatDialog.last_user_request()
-  local status, messages = pcall(ChatDialog.get_messages)
+  --local system = ChatDialog.get_system_prompt() or Prompts.GLOBAL_SYSTEM_PROMPT
+  local status, metadata, system_prompt, messages = pcall(ChatDialog.get_messages)
   if not status then
-    print(messages)
+    print('messages:', messages)
   else
     ChatDialog.append_text("\n\n/assistant:\n")
-    -- Assistant.ask(system, messages, ChatDialog.append_text, ChatDialog.on_complete)
-    local provider = config.config.provider
-    local p = Providers.get(provider)
-    Http.stream(system, messages, ChatDialog.append_text, ChatDialog.on_complete)
+    Http.stream(metadata, system_prompt, messages, ChatDialog.append_text, ChatDialog.on_complete)
   end
-end
-
-function ChatDialog.get_system_prompt()
-  if not (ChatDialog.state.buf and api.nvim_buf_is_valid(ChatDialog.state.buf)) then return nil end
-
-  local lines = api.nvim_buf_get_lines(ChatDialog.state.buf, 0, -1, false)
-  for _, line in ipairs(lines) do
-    if line:match("^/system%s(.+)") then return line:match("^/system%s(.+)") end
-  end
-  return nil
 end
 
 function ChatDialog.get_messages()
   if not (ChatDialog.state.buf and api.nvim_buf_is_valid(ChatDialog.state.buf)) then return nil end
   local lines = api.nvim_buf_get_lines(ChatDialog.state.buf, 0, -1, false)
-  return parse_messages(lines)
+  return parse_content(lines)
 end
 
 function ChatDialog.get_last_assist_message()

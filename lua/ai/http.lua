@@ -13,8 +13,8 @@ M.CANCEL_PATTERN = "NVIMAIHTTPEscape"
 local group = api.nvim_create_augroup("NVIMAIHTTP", { clear = true })
 local active_job = nil
 
-M.stream = function(system_prompt, messages, on_chunk, on_complete)
-  local provider = Config.config.provider
+M.stream = function(metadata, system_prompt, messages, on_chunk, on_complete)
+  local provider_name = metadata.provider or Config.config.provider
   local request = {
     messages = messages,
     system_prompt = system_prompt,
@@ -23,9 +23,19 @@ M.stream = function(system_prompt, messages, on_chunk, on_complete)
   ---@type string
   local current_event_state = nil
 
-  local Provider = P[provider]
 
-  local spec = Provider.parse_curl_args(Config.get_provider(provider), request)
+  local provider = Config.get_provider(provider_name)
+    if metadata.model then
+      provider.model = metadata.model
+    end
+    if metadata.temperature then
+      provider.temperature = tonumber(metadata.temperature)
+    end
+    if metadata.max_tokens then
+      provider.max_tokens = tonumber(metadata.max_tokens)
+    end
+  local Provider = P[provider_name]
+  local spec = Provider.parse_curl_args(provider, request)
 
   if active_job then
     active_job:shutdown()
@@ -44,7 +54,7 @@ M.stream = function(system_prompt, messages, on_chunk, on_complete)
       end
       if not data then return end
       vim.schedule(function()
-        if Config.config[provider] ~= nil and Provider.parse_response ~= nil then
+        if Config.config[provider_name] ~= nil and Provider.parse_response ~= nil then
           Provider.parse_response(data, current_event_state, on_chunk)
         end
       end)
