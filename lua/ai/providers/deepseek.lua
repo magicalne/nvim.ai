@@ -1,5 +1,4 @@
 local Utils = require("ai.utils")
-local Config = require("ai.config")
 local P = require("ai.providers")
 
 local M = {}
