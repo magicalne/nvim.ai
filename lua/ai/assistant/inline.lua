@@ -42,7 +42,7 @@ end
 
 function Inline:insert_lines()
   vim.schedule(function()
-    local lines = vim.split(self.state.code_block, "\n", true)
+    local lines = vim.split(self.state.code_block, "\n", {plain = true})
     local insert_position = self.state.cursor_line
 
     for _, line in ipairs(lines) do
@@ -60,6 +60,7 @@ end
 function Inline:append_text(text) self.state.code_block = self.state.code_block .. text end
 
 function Inline:on_complete(is_insert)
+  print('Inline assist is done.')
   if not is_insert then
     -- Schedule the buffer modification to run after the loop callback
     vim.schedule(function()
@@ -112,6 +113,7 @@ local function get_visual_selection_lines()
 end
 
 function Inline:new(prompt)
+  print('Generating answer...')
   self:init_state()
   -- Check if we are in visual mode
   local mode = vim.fn.mode()

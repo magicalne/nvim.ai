@@ -77,7 +77,7 @@ local function get_prefix_block_suffix(start_line, end_line)
 
   -- Get the block (lines between start_line and end_line, inclusive)
   local block = {}
-  if start_line < end_line then
+  if start_line <= end_line then
     for i = start_line, end_line do
       table.insert(block, vim.api.nvim_buf_get_lines(bufnr, i - 1, i, true)[1])
     end
@@ -126,9 +126,6 @@ end
 --   - rewrite_section: nil (TODO)
 --   - is_truncated: nil (TODO)
 local function build_inline_context(user_prompt, language_name, is_insert, start_line, end_line)
-  -- Get the current cursor line number
-  local cur_line = vim.fn.line(".")
-
   local document = build_inline_document(is_insert, start_line, end_line)
 
   if language_name == nil then language_name = get_buffer_filetype() end
