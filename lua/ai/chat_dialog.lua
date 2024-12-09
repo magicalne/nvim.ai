@@ -1,7 +1,5 @@
-local Providers = require("ai.providers")
 local Http = require("ai.http")
 local config = require("ai.config")
-local Utils = require("ai.utils")
 local Assist = require("ai.assistant.assist")
 local Prompts = require("ai.assistant.prompts")
 local api = vim.api
@@ -69,10 +67,10 @@ local function create_buf()
   local buf = api.nvim_create_buf(false, true)
   -- api.nvim_buf_set_option(buf, "buftype", "nofile")
 
-  api.nvim_set_option_value(buf, "bufhidden", "wipe")
-  api.nvim_set_option_value(buf, "buflisted", false)
-  api.nvim_set_option_value(buf, "swapfile", false)
-  api.nvim_set_option_value(buf, "filetype", config.FILE_TYPE)
+  api.nvim_set_option_value("bufhidden", "wipe", { buf = buf })
+  api.nvim_set_option_value("buflisted", false, { buf = buf })
+  api.nvim_set_option_value("swapfile", false, { buf = buf })
+  api.nvim_set_option_value("filetype", config.FILE_TYPE, { buf = buf })
 
   ChatDialog.state.metadata.provider = config.config.provider
   ChatDialog.state.metadata.model = config.config[config.config.provider].model
@@ -88,7 +86,7 @@ local function get_win_config()
 
   if type(width_rate) == "string" then
     -- Calculate width based on percentage of the current screen width
-    local screen_width = api.nvim_get_option("columns")
+    local screen_width = api.nvim_get_option_value("columns", {})
     -- 30%
     width = math.floor(screen_width * tonumber(width_rate:sub(1, -2)) / 100)
   elseif type(width_rate) == "number" then
@@ -98,8 +96,8 @@ local function get_win_config()
     -- Default to a fixed width if the configuration is invalid
     width = 40
   end
-  local height = api.nvim_get_option("lines") - 4
-  local col = ChatDialog.config.side == "left" and 0 or (api.nvim_get_option("columns") - width)
+  local height = api.nvim_get_option_value("lines", {}) - 4
+  local col = ChatDialog.config.side == "left" and 0 or (api.nvim_get_option_value("columns", {}) - width)
 
   return {
     relative = "editor",
@@ -276,7 +274,7 @@ function ChatDialog.get_chat_histories()
   local project_name = get_project_name()
   local save_dir = config.config.saved_chats_dir .. "/" .. project_name
 
-  local files = vim.fn.glob(save_dir .. "/chat_*.md", 0, 1)
+  local files = vim.fn.glob(save_dir .. "/chat_*.md", true, 1)
   table.sort(files, function(a, b) return a > b end) -- Sort in descending order
 
   return files
@@ -397,7 +395,6 @@ function ChatDialog.append_text(text)
   if
       not ChatDialog.state.buf
       or not pcall(api.nvim_buf_is_loaded, ChatDialog.state.buf)
-      or not pcall(api.nvim_buf_get_option, ChatDialog.state.buf, "buflisted")
   then
     return
   end
@@ -409,14 +406,14 @@ function ChatDialog.append_text(text)
     -- Split the new text into lines
     local new_lines = vim.split(text, "\n", { plain = true })
 
-    api.nvim_buf_set_option(ChatDialog.state.buf, "modifiable", true)
+    api.nvim_set_option_value("modifiable", true, { buf = ChatDialog.state.buf })
     -- Append the first line to the last line of the buffer
     local updated_last_line = last_line_content .. new_lines[1]
     api.nvim_buf_set_lines(ChatDialog.state.buf, -2, -1, false, { updated_last_line })
 
     -- Append the rest of the lines, if any
     if #new_lines > 1 then api.nvim_buf_set_lines(ChatDialog.state.buf, -1, -1, false, { unpack(new_lines, 2) }) end
-    api.nvim_buf_set_option(ChatDialog.state.buf, "modifiable", false)
+    api.nvim_set_option_value("modifiable", false, { buf = ChatDialog.state.buf })
 
     -- Scroll to bottom
     if ChatDialog.state.win and api.nvim_win_is_valid(ChatDialog.state.win) then
@@ -435,7 +432,6 @@ function ChatDialog.clear()
 end
 
 function ChatDialog.send()
-  --local system = ChatDialog.get_system_prompt() or Prompts.GLOBAL_SYSTEM_PROMPT
   local status, metadata, system_prompt, messages = pcall(ChatDialog.get_messages)
   if not status then
     print('messages:', messages)
@@ -499,7 +495,7 @@ function ChatDialog.setup_autocmd()
     once = false,
     callback = function()
       local bufnr = vim.api.nvim_get_current_buf()
-      local sources = cmp.get_config().sources
+      local sources = cmp.get_config().sources or {}
       local source_name = "nvimai_cmp_source"
       if bufnr == ChatDialog.state.buf then
         -- Check if the source is inserted before.
