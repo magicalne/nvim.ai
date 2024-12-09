@@ -5,13 +5,11 @@ local Utils = require("ai.utils")
 local Assist = require("ai.assistant.assist")
 local Prompts = require("ai.assistant.prompts")
 local api = vim.api
-local fn = vim.fn
 
 local ChatDialog = {}
 ChatDialog.ROLE_USER = "user"
 ChatDialog.ROLE_ASSISTANT = "assistant"
 local chat_dialog_group = vim.api.nvim_create_augroup("ChatDialogGroup", { clear = false })
-local cmp_source_setup = false
 
 ChatDialog.config = {
   width = 40,
@@ -32,11 +30,14 @@ ChatDialog.state = {
 }
 
 local function init_buf_content(bufnr)
-  local metadata = {
+  local content_table = {
     "---",
     "provider: " .. (ChatDialog.state.metadata.provider or ""),
     "model: " .. (ChatDialog.state.metadata.model or ""),
     "temperature: " .. (ChatDialog.state.metadata.temperature or ""),
+    "max_tokens: " .. (ChatDialog.state.metadata.max_tokens or ""),
+    "---",
+    "",
   }
 
   -- Split the system_prompt into lines and insert each line into the metadata table
@@ -45,32 +46,33 @@ local function init_buf_content(bufnr)
   local split_lines = vim.split(system_prompt_lines, '\n')
   -- Combine the "system_prompt: " label with the first line of the system_prompt
   if #split_lines > 0 then
-    table.insert(metadata, "system_prompt: " .. split_lines[1])
+    table.insert(content_table, "/system")
     -- Insert each subsequent line of the system_prompt
-    for i = 2, #split_lines do
-      table.insert(metadata, split_lines[i])
+    for i = 1, #split_lines do
+      table.insert(content_table, split_lines[i])
     end
   else
-    table.insert(metadata, "system_prompt: ")
+    table.insert(content_table, "/system")
+    table.insert(content_table, system_prompt_lines)
   end
 
-  -- Continue with the rest of the metadata
-  table.insert(metadata, "---")
-  table.insert(metadata, "")
-  table.insert(metadata, "/you")
-  table.insert(metadata, "")
+  -- Continue with the rest of the content
+  table.insert(content_table, "")
+  table.insert(content_table, "/you")
+  table.insert(content_table, "")
 
   -- Set the lines in the buffer
-  api.nvim_buf_set_lines(bufnr, 0, -1, false, metadata)
+  api.nvim_buf_set_lines(bufnr, 0, -1, false, content_table)
 end
 
 local function create_buf()
   local buf = api.nvim_create_buf(false, true)
   -- api.nvim_buf_set_option(buf, "buftype", "nofile")
-  api.nvim_buf_set_option(buf, "bufhidden", "wipe")
-  api.nvim_buf_set_option(buf, "buflisted", false)
-  api.nvim_buf_set_option(buf, "swapfile", false)
-  api.nvim_buf_set_option(buf, "filetype", config.FILE_TYPE)
+
+  api.nvim_set_option_value(buf, "bufhidden", "wipe")
+  api.nvim_set_option_value(buf, "buflisted", false)
+  api.nvim_set_option_value(buf, "swapfile", false)
+  api.nvim_set_option_value(buf, "filetype", config.FILE_TYPE)
 
   ChatDialog.state.metadata.provider = config.config.provider
   ChatDialog.state.metadata.model = config.config[config.config.provider].model
@@ -236,7 +238,6 @@ local function parse_content(lines)
   local metadata = parse_metadata(lines)
   local system_prompt = parse_system_prompt(lines)
   local messages = parse_messages(lines)
-  print('messages', vim.inspect(messages))
 
   return metadata, system_prompt, messages
 end
@@ -351,10 +352,10 @@ function ChatDialog.open()
     vim.fn.bufload(ChatDialog.state.buf)
     -- api.nvim_buf_set_option(ChatDialog.state.buf, "buftype", "nofile")
 
-    api.nvim_buf_set_option(ChatDialog.state.buf, "bufhidden", "wipe")
-    api.nvim_buf_set_option(ChatDialog.state.buf, "buflisted", false)
-    api.nvim_buf_set_option(ChatDialog.state.buf, "swapfile", false)
-    api.nvim_buf_set_option(ChatDialog.state.buf, "filetype", config.FILE_TYPE)
+    api.nvim_set_option_value("bufhidden", "wipe", { buf = ChatDialog.state.buf })
+    api.nvim_set_option_value("buflisted", false, { buf = ChatDialog.state.buf })
+    api.nvim_set_option_value("swapfile", false, { buf = ChatDialog.state.buf })
+    api.nvim_set_option_value("filetype", config.FILE_TYPE, { buf = ChatDialog.state.buf })
   else
     -- create a new buf
     ChatDialog.state.buf = ChatDialog.state.buf or create_buf()
@@ -363,9 +364,9 @@ function ChatDialog.open()
   ChatDialog.state.win = api.nvim_open_win(ChatDialog.state.buf, true, win_config)
 
   -- Set window options
-  api.nvim_win_set_option(ChatDialog.state.win, "wrap", true)
-  api.nvim_win_set_option(ChatDialog.state.win, "linebreak", true) -- Wrap at word boundaries
-  api.nvim_win_set_option(ChatDialog.state.win, "cursorline", true)
+  api.nvim_set_option_value("wrap", true, { win = ChatDialog.state.win })
+  api.nvim_set_option_value("linebreak", true, { win = ChatDialog.state.win }) -- Wrap at word boundaries
+  api.nvim_set_option_value("cursorline", true, { win = ChatDialog.state.win })
 end
 
 function ChatDialog.close()
@@ -395,8 +396,8 @@ end
 function ChatDialog.append_text(text)
   if
       not ChatDialog.state.buf
-      or not pcall(vim.api.nvim_buf_is_loaded, ChatDialog.state.buf)
-      or not pcall(vim.api.nvim_buf_get_option, ChatDialog.state.buf, "buflisted")
+      or not pcall(api.nvim_buf_is_loaded, ChatDialog.state.buf)
+      or not pcall(api.nvim_buf_get_option, ChatDialog.state.buf, "buflisted")
   then
     return
   end

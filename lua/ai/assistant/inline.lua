@@ -1,8 +1,6 @@
-local Config = require("ai.config")
 local Assist = require("ai.assistant.assist")
 local Http = require("ai.http")
 local ChatDialog = require("ai.chat_dialog")
-local Prompts = require("ai.assistant.prompts")
 
 local ESC_FEEDKEY = vim.api.nvim_replace_termcodes("<ESC>", true, false, true)
 
@@ -15,6 +13,16 @@ local Inline = {
     original_code_block = {},
   },
 }
+
+function Inline:init_state()
+  self.state = {
+    code_block = "",
+    cursor_line = nil,
+    start_line = nil,
+    end_line = nil,
+    original_code_block = {},
+  }
+end
 
 function extract_code(text)
   local lines = {}
@@ -37,7 +45,7 @@ function Inline:insert_lines()
     local lines = vim.split(self.state.code_block, "\n", true)
     local insert_position = self.state.cursor_line
 
-    for i, line in ipairs(lines) do
+    for _, line in ipairs(lines) do
       if not line:match("^```") then
         vim.api.nvim_buf_set_lines(0, insert_position, insert_position, false, { line })
         insert_position = insert_position + 1
@@ -69,12 +77,10 @@ function Inline:on_complete(is_insert)
 end
 
 function Inline:start(prompt, is_insert)
-  -- TODO: process metadata and system_prompt
-  local system_prompt = Prompts.GLOBAL_SYSTEM_PROMPT
   -- NOTE: Cannot just get the last message from `asssitance`.
   -- Provider like anthropic requires first role must be `user`.
   -- Maybe just take the last 2 messages?
-  local messages = ChatDialog.get_messages() or {}
+  local metadata, system_prompt, messages = ChatDialog.get_messages() or {}, "", {}
   -- remove the last message if its role is user
   if #messages > 0 and messages[#messages].role == ChatDialog.ROLE_USER then table.remove(messages) end
   local user_message = {
@@ -84,6 +90,7 @@ function Inline:start(prompt, is_insert)
   table.insert(messages, user_message)
 
   Http.stream(
+    metadata,
     system_prompt,
     messages,
     function(text) self:append_text(text) end,
@@ -92,7 +99,6 @@ function Inline:start(prompt, is_insert)
 end
 
 local function get_visual_selection_lines()
-  local mode = vim.api.nvim_get_mode().mode
   -- Get the start and end positions of the visual selection
   local start_pos = vim.fn.getpos("'<")
   local end_pos = vim.fn.getpos("'>")
@@ -106,12 +112,13 @@ local function get_visual_selection_lines()
 end
 
 function Inline:new(prompt)
+  self:init_state()
   -- Check if we are in visual mode
   local mode = vim.fn.mode()
   if mode ~= "v" and mode ~= "V" and mode ~= "" then
     -- insert mode
     self.state.code_block = ""
-    start_line = vim.fn.line(".")
+    local start_line = vim.fn.line(".")
     self.state.cursor_line = start_line - 1
     self.state.start_line = self.state.cursor_line
     self.state.end_line = start_line - 1
