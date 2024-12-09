@@ -64,8 +64,7 @@ local function init_buf_content(bufnr)
 end
 
 local function create_buf()
-  local buf = api.nvim_create_buf(false, true)
-  -- api.nvim_buf_set_option(buf, "buftype", "nofile")
+  local buf = api.nvim_create_buf(false, false)
 
   api.nvim_set_option_value("bufhidden", "wipe", { buf = buf })
   api.nvim_set_option_value("buflisted", false, { buf = buf })
@@ -342,11 +341,12 @@ function ChatDialog.open()
     return
   end
 
-  local file_to_load = ChatDialog.state.last_saved_file or ChatDialog.get_chat_histories()[1]
+  -- Open last saved file instead of creating a new file
+  ChatDialog.state.last_saved_file = ChatDialog.get_chat_histories()[1]
 
-  if file_to_load then
+  if ChatDialog.state.last_saved_file then
     -- load from last saved file
-    ChatDialog.state.buf = vim.fn.bufadd(file_to_load)
+    ChatDialog.state.buf = vim.fn.bufadd(ChatDialog.state.last_saved_file)
     vim.fn.bufload(ChatDialog.state.buf)
     -- api.nvim_buf_set_option(ChatDialog.state.buf, "buftype", "nofile")
 
