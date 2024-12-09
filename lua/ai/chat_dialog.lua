@@ -23,6 +23,7 @@ ChatDialog.state = {
     provider = nil,
     model = nil,
     temperature = nil,
+    max_tokens = nil,
     system_prompt = nil,
   },
 }
@@ -71,9 +72,11 @@ local function create_buf()
   api.nvim_set_option_value("swapfile", false, { buf = buf })
   api.nvim_set_option_value("filetype", config.FILE_TYPE, { buf = buf })
 
+  -- init states
   ChatDialog.state.metadata.provider = config.config.provider
   ChatDialog.state.metadata.model = config.config[config.config.provider].model
   ChatDialog.state.metadata.temperature = config.config[config.config.provider].temperature
+  ChatDialog.state.metadata.max_tokens = config.config[config.config.provider].max_tokens
   ChatDialog.state.metadata.system_prompt = Prompts.GLOBAL_SYSTEM_PROMPT
   init_buf_content(buf)
   return buf
