@@ -68,9 +68,18 @@ M.stream = function(metadata, system_prompt, messages, on_chunk, on_complete)
     end,
     callback = function(resp)
       if Config.get("debug") then print("resp:", vim.inspect(resp)) end
-
       active_job = nil
-      on_complete(nil)
+
+      print("http status: " .. resp.status)
+      if resp.status ~= 200 then
+        local err_msg = "HTTP error: " .. resp.status
+        if resp.body then
+          err_msg = err_msg .. "\nResponse content: " .. resp.body
+        end
+        on_complete(err_msg)
+      else
+        on_complete(nil)
+      end
     end,
   })
 
