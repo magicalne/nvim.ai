@@ -82,7 +82,7 @@ M.defaults = {
   },
   snova = {
     endpoint = "https://fast-api.snova.ai",
-    model = "Meta-Llama-3.1-70B-Instruct", -- or Meta-Llama-3.1-70B-Instruct, Meta-Llama-3.1-8B-Instruct, Meta-Llama-3.1-405B-Instruct
+    model = "Qwen2.5-Coder-32B-Instruct", -- or Meta-Llama-3.1-70B-Instruct, Meta-Llama-3.1-8B-Instruct, Meta-Llama-3.1-405B-Instruct
     temperature = 0,
     max_tokens = 3000, --sambanova's context is smaller: https://community.sambanova.ai/t/quick-start-guide/104
     ["local"] = false,
