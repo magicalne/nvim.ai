@@ -14,6 +14,9 @@ local group = api.nvim_create_augroup("NVIMAIHTTP", { clear = true })
 local active_job = nil
 
 M.stream = function(metadata, system_prompt, messages, on_chunk, on_complete)
+  -- Ensure metadata is not nil
+  metadata = metadata or {}
+
   local provider_name = metadata.provider or Config.config.provider
   local request = {
     messages = messages,
