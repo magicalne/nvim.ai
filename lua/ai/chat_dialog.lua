@@ -387,17 +387,17 @@ function ChatDialog.toggle()
 end
 
 function ChatDialog.on_complete(err_msg)
-
   vim.defer_fn(function()
     api.nvim_set_option_value("modifiable", true, { buf = ChatDialog.state.buf })
     if err_msg then
       ChatDialog.append_text("An error occurred: " .. err_msg)
     else
-      api.nvim_buf_set_lines(ChatDialog.state.buf, -1, -1, false, { "", "/you:" })
+      api.nvim_buf_set_lines(ChatDialog.state.buf, -1, -1, false, { "", "/you", "" })
     end
-
+  end, 50)
+  vim.defer_fn(function ()
     ChatDialog.save_file()
-  end, 10) -- 10ms delay
+  end, 500)
 end
 
 function ChatDialog.append_text(text)

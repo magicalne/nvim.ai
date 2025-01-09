@@ -2,16 +2,6 @@ local M = {}
 
 M.BASE_PROVIDER_KEYS = { "endpoint", "model", "local", "deployment", "api_version", "proxy", "allow_insecure" }
 M.FILE_TYPE = "markdown"
--- M.FILE_TYPE = "chat-dialog"
-
--- Add this near the top of the file, after the local M = {} line
-local function read_file(path)
-  local file = io.open(path, "r")
-  if not file then return nil end
-  local content = file:read("*all")
-  file:close()
-  return content
-end
 
 -- Default configuration
 M.defaults = {
