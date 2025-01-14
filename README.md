@@ -24,6 +24,7 @@ Set up context with diagnostics from LSP.
 - 📝 Inline assistant: Code insertion and rewriting
 - 🛠️Slash Commands:
    - /buf with bufnr
+   - /file with file path
    - /diagnostics with bufnr
 - 🌐 Multiple LLM provider support:
    - Ollama (local)
