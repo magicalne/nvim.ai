@@ -13,7 +13,7 @@ local function get_buffer_filetype()
   if not vim.api.nvim_buf_is_valid(bufnr) then return nil, "Invalid buffer number" end
 
   -- Get the filetype of the buffer
-  local filetype = vim.api.nvim_buf_get_option(bufnr, "filetype")
+  local filetype = vim.api.nvim_get_option_value("filetype", { buf = bufnr }) or ""
 
   -- If filetype is an empty string, it might mean it's not set
   if filetype == "" then
@@ -40,7 +40,7 @@ local function setup_document(buffer_numbers)
       local filename = vim.fn.fnamemodify(full_path, ":t")
 
       -- get the file type, or empty string if not available
-      local filetype = vim.api.nvim_buf_get_option(bufnr, "filetype") or ""
+      local filetype = vim.api.nvim_get_option_value("filetype", { buf = bufnr }) or ""
 
       -- get buffer content
       local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
@@ -103,7 +103,6 @@ local function build_inline_document(is_insert, start_line, end_line)
       suffix,
     }, "\n\n")
   else
-    -- TODO: rewrite section
     return table.concat({
       prefix,
       "<rewrite_this>",
@@ -203,6 +202,54 @@ local function get_all_diagnostics_info(buffers)
   end
 end
 
+local function extract_file_content(file_path)
+  -- Check if the file exists and is readable
+  if not vim.fn.filereadable(file_path) then
+    print("File not found or not readable: " .. file_path)
+  end
+
+  -- Read the file content
+  local lines = vim.fn.readfile(file_path)
+  local content = table.concat(lines, "\n")
+
+  -- Get the file name and filetype
+  local filename = vim.fn.fnamemodify(file_path, ":t")
+  local filetype = vim.filetype.match({ filename = file_path }) or ""
+
+  -- Format the content
+  local formatted_content = string.format("%s\n```%s\n%s\n```", filename, filetype, content)
+  return formatted_content
+end
+
+local function extract_file_content_from_paths(files)
+  local file_contents = {}
+
+  -- Parse lines for /file commands
+  for _, file_path in ipairs(files) do
+    if file_path then
+      -- strip leading and trailing whitespaces
+      file_path = file_path:gsub("^%s*(.-)%s*$", "%1")
+      -- Resolve relative paths to absolute paths
+      file_path = vim.fn.fnamemodify(file_path, ":p")
+
+      -- Extract and format the file content
+      local content, err = extract_file_content(file_path)
+      if content then
+        table.insert(file_contents, content)
+      else
+        error("Failed to extract content for /file command: " .. err)
+      end
+    end
+  end
+
+  if #file_contents > 0 then
+    local docs = table.concat(file_contents, "\n\n")
+    return "<document>\n" .. docs .. "\n</document>\n\n"
+  else
+    return ""
+  end
+end
+
 --  How to implement the feature: `apply the change` in zed ai?
 -- Zed caches all the messages in the assistant panel.
 -- Zed builds prompt for the current buffer.
@@ -218,14 +265,18 @@ M.parse_user_message = function(lines)
   local buffers = {}
   local user_prompt_lines = {}
   local diagnostic_buffers = {}
+  local files = {}
   -- parse slash commands
   for _, line in ipairs(lines) do
     local buf_match = line:match("^/buf%s+(%d+)")
     local diagnostics_match = line:match("^/diagnostics (%d+)")
+    local file_match = line:match("^/file%s+(.+)$")
     if buf_match then
       table.insert(buffers, tonumber(buf_match))
     elseif diagnostics_match then
       table.insert(diagnostic_buffers, tonumber(diagnostics_match))
+    elseif file_match then
+      table.insert(files, file_match)
     else
       table.insert(user_prompt_lines, line)
     end
@@ -235,7 +286,8 @@ M.parse_user_message = function(lines)
   local prompt = ""
   local document = setup_document(buffers)
   local diagnostics_info = get_all_diagnostics_info(diagnostic_buffers)
-  prompt = document .. diagnostics_info .. user_prompt
+  local file_content = extract_file_content_from_paths(files)
+  prompt = document .. diagnostics_info .. file_content .. user_prompt
   return prompt
 end
 
