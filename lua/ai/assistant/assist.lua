@@ -204,12 +204,13 @@ end
 
 local function extract_file_content(file_path)
   -- Check if the file exists and is readable
-  if not vim.fn.filereadable(file_path) then
-    print("File not found or not readable: " .. file_path)
+  if vim.fn.filereadable(file_path) == 0 then
+    error("File not found or not readable: " .. file_path)
   end
 
   -- Read the file content
   local lines = vim.fn.readfile(file_path)
+
   local content = table.concat(lines, "\n")
 
   -- Get the file name and filetype
@@ -233,11 +234,9 @@ local function extract_file_content_from_paths(files)
       file_path = vim.fn.fnamemodify(file_path, ":p")
 
       -- Extract and format the file content
-      local content, err = extract_file_content(file_path)
+      local content = extract_file_content(file_path)
       if content then
         table.insert(file_contents, content)
-      else
-        error("Failed to extract content for /file command: " .. err)
       end
     end
   end
