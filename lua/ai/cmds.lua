@@ -25,7 +25,7 @@ return {
   },
   {
     cmd = "NvimAIInlineAssist",
-    callback = function(opts) Assistant.inline(opts.args) end,
+    callback = function() Assistant.inline() end,
     opts = {
       desc = "Insert code or rewrite a section",
       range = true,

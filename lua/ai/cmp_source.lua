@@ -7,6 +7,7 @@ local special_commands = {
   { label = "/you", kind = cmp.lsp.CompletionItemKind.Keyword },
   { label = "/buf", kind = cmp.lsp.CompletionItemKind.Keyword },
   { label = "/diagnostics", kind = cmp.lsp.CompletionItemKind.Keyword },
+  { label = "/file", kind = cmp.lsp.CompletionItemKind.Keyword },
 }
 
 source.new = function() return setmetatable({}, { __index = source }) end
@@ -38,6 +39,22 @@ source.complete = function(self, request, callback)
       end
     end
   end
+  local function file_completion()
+    local cwd = vim.fn.getcwd()
+    local files = vim.fn.globpath(cwd, "**/*", true, true)
+    for _, file in ipairs(files) do
+      local relative_path = vim.fn.fnamemodify(file, ":~:.")
+      table.insert(items, {
+        label = relative_path,
+        kind = cmp.lsp.CompletionItemKind.File,
+        data = { file = file },
+        documentation = {
+          kind = cmp.lsp.MarkupKind.Markdown,
+          value = string.format("File: %s", file),
+        },
+      })
+    end
+  end
 
   if input:match("^/buf") then
     -- Handle /buf command
@@ -45,6 +62,9 @@ source.complete = function(self, request, callback)
   elseif input:match("^/diagnostics") then
     -- Handle /diagnostics command
     cmd("/diagnostics")
+  elseif input:match("^/file") then
+    -- Handle /file command
+    file_completion()
   else
     -- Handle other special commands
     for _, command in ipairs(special_commands) do

@@ -81,7 +81,11 @@ function Inline:start(prompt, is_insert)
   -- NOTE: Cannot just get the last message from `asssitance`.
   -- Provider like anthropic requires first role must be `user`.
   -- Maybe just take the last 2 messages?
-  local metadata, system_prompt, messages = ChatDialog.get_messages() or {}, "", {}
+  local metadata, system_prompt, messages, err = ChatDialog.get_messages() or {}, "", {}, nil
+  if err then
+    print("Error getting messages: " .. err)
+    return
+  end
   -- remove the last message if its role is user
   if #messages > 0 and messages[#messages].role == ChatDialog.ROLE_USER then table.remove(messages) end
   local user_message = {

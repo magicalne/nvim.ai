@@ -443,7 +443,7 @@ end
 function ChatDialog.send()
   local status, metadata, system_prompt, messages = pcall(ChatDialog.get_messages)
   if not status then
-    print('messages:', messages)
+    print('Failed to parse chat. Please check your slash commands. ' .. metadata)
   else
     ChatDialog.append_text("\n\n/assistant:\n")
     Http.stream(metadata, system_prompt, messages, ChatDialog.append_text, ChatDialog.on_complete)
