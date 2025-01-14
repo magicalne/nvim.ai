@@ -197,13 +197,10 @@ local function parse_messages(lines)
       current_role = ChatDialog.ROLE_USER
     elseif line:match("^/assistant") then
       if current_role then
-        local content, err
+        local content
         if current_role == ChatDialog.ROLE_USER then
           -- parse slash commands in user prompt
           content = Assist.parse_user_message(current_content)
-          if err then
-            return nil, err
-          end
         else
           content = table.concat(current_content, "\n")
         end
