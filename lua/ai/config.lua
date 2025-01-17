@@ -1,7 +1,7 @@
 local M = {}
 
 M.BASE_PROVIDER_KEYS = { "endpoint", "model", "local", "deployment", "api_version", "proxy", "allow_insecure" }
-M.FILE_TYPE = "markdown"
+M.FILE_TYPE = "nvim-ai-chat-dialog"
 
 -- Default configuration
 M.defaults = {

@@ -27,8 +27,6 @@ local function setup_keymaps()
     { noremap = true, silent = true }
   )
 
-  local M = {}
-
   -- Create an autocommand to set ChatDialog keymaps when entering the chat-dialog buffer
   vim.api.nvim_create_autocmd("FileType", {
     pattern = Config.FILE_TYPE,
