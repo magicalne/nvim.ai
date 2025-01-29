@@ -184,13 +184,17 @@ local function parse_messages(lines)
   local result = {}
   local current_role = nil
   local current_content = {}
+  local function escape_quotes(text)
+    return text:gsub('"', '\\"')
+  end
 
   for _, line in ipairs(lines) do
     if line:match("^/you") then
       if current_role then
         table.insert(result, {
           role = current_role,
-          content = table.concat(current_content, "\n"),
+          content = escape_quotes(table.concat(current_content, "\n")),
+          -- content = table.concat(current_content, "\n"),
         })
         current_content = {}
       end
@@ -207,7 +211,8 @@ local function parse_messages(lines)
 
         table.insert(result, {
           role = current_role,
-          content = content,
+          -- content = content,
+          content = escape_quotes(content),
         })
         current_content = {}
       end
@@ -227,7 +232,8 @@ local function parse_messages(lines)
     end
     table.insert(result, {
       role = current_role,
-      content = content,
+      -- content = content,
+      content = escape_quotes(content),
     })
   end
 
