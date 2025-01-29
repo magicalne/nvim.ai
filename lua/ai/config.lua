@@ -27,6 +27,13 @@ M.defaults = {
     max_tokens = 4096,
     ["local"] = false,
   },
+  qwen = {
+    endpoint = "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    model = "qwen-plus", -- qwen-max, qwen-turbo, qwen-long
+    temperature = 0,
+    max_tokens = 4096,
+    ["local"] = false,
+  },
   cohere = {
     endpoint = "https://api.cohere.com",
     model = "command-r-plus", -- or command-r

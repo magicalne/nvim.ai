@@ -30,6 +30,7 @@ Set up context with diagnostics from LSP.
    - Ollama (local)
    - Anthropic
    - Deepseek
+   - Qwen
    - Cohere
    - Gemini
    - Mistral
@@ -100,6 +101,7 @@ export ANTHROPIC_API_KEY=""
 export CO_API_KEY=""
 export GROQ_API_KEY=""
 export DEEPSEEK_API_KEY=""
+export QWEN_API_KEY=""
 export MISTRAL_API_KEY=""
 export GOOGLE_API_KEY=""
 export HYPERBOLIC_API_KEY=""
@@ -111,13 +113,14 @@ export CEREBRAS_API_KEY=""
 ```Lua
 local ai = require('ai')
 ai.setup({
+  provider = "deepseek",
+  --provider = "qwen",
   --provider = "snova",
   --provider = "hyperbolic",
   --provider = "cerebras",
   --provider = "gemini",
   --provider = "mistral",
-  provider = "anthropic",
-  --provider = "deepseek",
+  --provider = "anthropic",
   --provider = "groq",
   --provider = "cohere",
 })
