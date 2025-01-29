@@ -132,7 +132,7 @@ local ai = require('ai')
 ai.setup({
   provider = "openai",
   openai = {
-    ["local "] = true,
+    ["local"] = true,
     model = "llama3.1:70b",
     endpoint = "http://localhost:8080",
   }
