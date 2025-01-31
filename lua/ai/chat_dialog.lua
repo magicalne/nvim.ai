@@ -350,6 +350,17 @@ function ChatDialog.open()
     return
   end
 
+  -- get original window options
+  local original_win_opts = {}
+  local win_number = api.nvim_get_current_win()
+  local v = vim.wo[win_number]
+  local all_options = api.nvim_get_all_options_info()
+  for key, val in pairs(all_options) do
+      if val.global_local == false and val.scope == "win" then
+          original_win_opts[key] = v[key]
+      end
+  end
+
   -- Open last saved file instead of creating a new file
   ChatDialog.state.last_saved_file = ChatDialog.get_chat_histories()[1]
 
@@ -371,9 +382,10 @@ function ChatDialog.open()
   ChatDialog.state.win = api.nvim_open_win(ChatDialog.state.buf, true, win_config)
 
   -- Set window options
-  api.nvim_set_option_value("wrap", true, { win = ChatDialog.state.win })
-  api.nvim_set_option_value("linebreak", true, { win = ChatDialog.state.win }) -- Wrap at word boundaries
-  api.nvim_set_option_value("cursorline", true, { win = ChatDialog.state.win })
+  -- Copy all options from the original window to the new window
+  for opt, value in pairs(original_win_opts) do
+    api.nvim_set_option_value(opt, value, { win = ChatDialog.state.win })
+  end
 end
 
 function ChatDialog.close()
