@@ -62,6 +62,7 @@ local default_providers = {
   "openai",
   "anthropic",
   "deepseek",
+  "gigachat",
   "qwen",
   "gemini",
   "cohere",
