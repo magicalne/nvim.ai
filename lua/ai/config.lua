@@ -1,6 +1,7 @@
 local M = {}
 
-M.BASE_PROVIDER_KEYS = { "endpoint", "model", "local", "deployment", "api_version", "proxy", "allow_insecure" }
+M.BASE_PROVIDER_KEYS =
+  { "endpoint", "auth_endpoint", "model", "local", "deployment", "api_version", "proxy", "allow_insecure" }
 M.FILE_TYPE = "nvim-ai-chat-dialog"
 
 -- Default configuration
@@ -20,6 +21,16 @@ M.defaults = {
 
   -- LLM configuration
   provider = "ollama",
+  gigachat = {
+    auth_endpoint = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth",
+    models_endpoint = "https://gigachat.devices.sberbank.ru/",
+    endpoint = "https://gigachat.devices.sberbank.ru/api/v1",
+    model = "GigaChat",
+    temperature = 0,
+    max_tokens = 4096,
+    ["local"] = false,
+    allow_insecure = true,
+  },
   deepseek = {
     endpoint = "https://api.deepseek.com",
     model = "deepseek-chat", -- or command-r
