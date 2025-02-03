@@ -58,7 +58,7 @@ local function update_api_key()
 
   local body = vim.json.decode(response.body)
   M.api_key = body.access_token
-  M.api_key_expires = body.expires_in
+  M.api_key_expires = body.expires_at
   M.api_key_received_in = os.time()
 end
 
